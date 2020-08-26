@@ -1,0 +1,42 @@
+{
+  "name": "pagina",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "babel-node app.js --exec",
+    "devbabel": "nodemon app.js --exec babel-node",
+    "dev": "nodemon app.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@babel/cli": "^7.7.5",
+    "@babel/core": "^7.7.5",
+    "@babel/node": "^7.7.4",
+    "@babel/preset-env": "^7.7.6",
+    "axios": "^0.19.0",
+    "connect-history-api-fallback": "^1.6.0",
+    "cors": "^2.8.5",
+    "crypto-js": "^3.1.9-1",
+    "dotenv": "^8.2.0",
+    "express": "^4.17.1",
+    "googleapis": "^58.0.0",
+    "jsonwebtoken": "^8.5.1",
+    "mongoose": "^5.7.14",
+    "morgan": "^1.9.1",
+    "nodemailer": "^6.4.1",
+    "passport": "^0.4.1",
+    "passport-google-oauth20": "^2.0.0",
+    "passport-local": "^1.0.0",
+    "socket.io": "^2.3.0"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.7.5",
+    "@babel/core": "^7.7.5",
+    "@babel/node": "^7.7.4",
+    "@babel/preset-env": "^7.7.6",
+    "nodemon": "^2.0.4"
+  }
+}

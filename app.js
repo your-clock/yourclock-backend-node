@@ -72,7 +72,7 @@ socketio.on("connection", socket => {
 
 //---------------CONFIG. MENSAJE CORREO-------------------
 var mailConfig;
-if(process.env.NODE_ENV === "production"){
+if(process.env.NODE_ENV === "production" || process.env.NODE_ENV === "staging"){
 	const myOAuth2Client = new OAuth2(
 		process.env.ID_EMAIL,
 		process.env.SECRET_EMAIL,
@@ -92,7 +92,7 @@ if(process.env.NODE_ENV === "production"){
 			accessToken: myAccessToken //access token variable we defined earlier
 		}
 	};
-}else if(process.env.NODE_ENV === "development" || process.env.NODE_ENV === "staging"){
+}else if(process.env.NODE_ENV === "development"){
 	mailConfig = {
 		host: 'smtp.ethereal.email',
 		port: 587,

@@ -92,7 +92,7 @@ if(process.env.NODE_ENV === "production"){
 			accessToken: myAccessToken //access token variable we defined earlier
 		}
 	};
-}else if(process.env.NODE_ENV === "development" || process.env.NODE_ENV === "staging"){
+}else if(process.env.NODE_ENV === "development"){
 	mailConfig = {
 		host: 'smtp.ethereal.email',
 		port: 587,

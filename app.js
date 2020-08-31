@@ -72,7 +72,7 @@ socketio.on("connection", socket => {
 
 //---------------CONFIG. MENSAJE CORREO-------------------
 var mailConfig;
-if(process.env.NODE_ENV === "production" || process.env.NODE_ENV === "staging"){
+if(process.env.NODE_ENV === "production"){
 	const myOAuth2Client = new OAuth2(
 		process.env.ID_EMAIL,
 		process.env.SECRET_EMAIL,

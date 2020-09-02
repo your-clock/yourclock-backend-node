@@ -32,10 +32,10 @@ app.use(history());
 app.use('/api', router)
 app.set('puerto', process.env.PORT || 3000);
 app.use('/privacy_policy', function(req, res){
-	res.sendFile('public/privacy_policy.html');
+	res.sendFile('views/privacy_policy.html');
 });
 app.use('google030be2b97e367ddd', function(req, res){
-	res.sendFile('public/google030be2b97e367ddd.html');
+	res.sendFile('views/google030be2b97e367ddd.html');
 });
 //-------------------------------------------------------
 
@@ -72,7 +72,7 @@ socketio.on("connection", socket => {
 
 //---------------CONFIG. MENSAJE CORREO-------------------
 var mailConfig;
-if(process.env.NODE_ENV === "production"){
+if(process.env.NODE_ENV === "production"){	
 	const myOAuth2Client = new OAuth2(
 		process.env.ID_EMAIL,
 		process.env.SECRET_EMAIL,

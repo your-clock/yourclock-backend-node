@@ -403,7 +403,15 @@ router.post('/recoverypassword', async(req, res) =>{
 	}
 })
 
+router.post('/prueba', async(req, res) => {
 
+    a = req.body.a
+    b = req.body.b
+    console.log(a)
+    suma = a + b
+    console.log(suma)
+    res.send(suma.toString())
+})
 
 
 

@@ -26,7 +26,7 @@ app.use(express.json());
 app.use(passport.initialize());
 app.use(passport.session());
 app.use(express.urlencoded({ extended: true }))     //application/x-www-form-urlencoded
-app.use(express.static(path.join(__dirname, 'public')));
+//app.use(express.static(path.join(__dirname, 'public')));
 app.set('views', path.join(__dirname, 'views'));
 app.use(history());
 app.use('/api', router)
@@ -200,16 +200,25 @@ router.post('/auth', async(req, res) => {
 
 	if(!correo_req || !password_req){
 		console.log("Error, faltan datos")
-		res.send("305")
+		res.json({
+			msg: "Por favor llene todos los campos para completar el registro",
+			code: 305
+		})
 	}else{
 		await Auth.find({correo: correo_req}, {_id: 0,__v: 0}, function(err, result){
 			if(err){
 				console.log("Error consultando")
-				res.send("400")
+				res.json({
+					msg: "Error, compruebe su conexion e intentelo de nuevo",
+					code: 400
+				})
 			}else{	
 				if(result == ""){
 					console.log("Correo incorreto")
-					res.send("307")
+					res.json({
+						msg: "Correo incorrecto, intentelo de nuevo",
+						code: 307
+					})
 				}else{
 					var contraHASH = crypto.HmacSHA1(password_req, process.env.KEY_SHA1)
 					if(contraHASH == result[0].password){
@@ -220,17 +229,29 @@ router.post('/auth', async(req, res) => {
 							}	
 							updateToken(tokenData, function(error, token){
 								if(error){
-									res.send("400")
+									res.json({
+										msg: "Ha ocurrido un error al generar el token, intentelo de nuevo",
+										code: 401
+									})
 								}else{
-									res.send(token)
+									res.json({
+										msg: "Token enviado correctamente",
+										code: token
+									})
 								}
 							})
 						}else{
 							console.log('verificacion no realizada')
-							res.send("308")
+							res.json({
+								msg: "Por favor verifique su cuenta para continuar",
+								code: 308
+							})
 						}
 					}else{
-						res.send("306")
+						res.json({
+							msg: "contraseña incorrecta, intentelo de nuevo",
+							code: 306
+						})
 						console.log("Contraseña incorrecta")
 					}
 				}
@@ -243,7 +264,7 @@ router.post('/inicio', async(req, res) => {
 	var token_req = req.body.token
 	
 	if(!token_req){
-		res.status(400).json("faltaron datos")
+		res.status(400).json({msg: "faltaron datos"})
 	}else{
 		await verifyToken(token_req, function(err, newToken){
 			if(err){
@@ -401,11 +422,7 @@ router.post('/recoverypassword', async(req, res) =>{
 			}
 		})
 	}
-})
-
-
-
-
+}) 
 
 //-----------------------------------------------------------
 
@@ -415,7 +432,7 @@ function updateToken(tokenData, callback){
 		if(err){
 			console.log(getDateTime()+":------------------ TOKEN NO ACTUALIZADO ---------------------\n")
 			console.log(err)
-			callback(true, null)
+			callback(true, err)
 		}else{
 			console.log(getDateTime()+":-------------------- TOKEN ACTUALIZADO ----------------------\n")
 			callback(false, newToken)

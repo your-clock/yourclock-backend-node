@@ -27,5 +27,6 @@ router.post('/prueba', async(req, res) => {
     suma = a + b
     console.log(suma)
     res.send(suma.toString())
+
 })
 

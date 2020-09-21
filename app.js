@@ -138,10 +138,13 @@ router.post('/login', async(req, res) => {
 	
 	var email = req.body.mail
 	var contra = req.body.pass
-	var nombre = req.body.name
+	var nombre1 = req.body.name1
+	var nombre2 = req.body.name2
+	var apellido1 = req.body.lastName1
+	var apellido2 = req.body.lastName2
 	var ciudad = req.body.city
 	
-	if(!email || !contra || !nombre || !ciudad){	
+	if(!email || !contra || !nombre1 || !apellido1 || !ciudad){
 		res.send("305")
 		console.log(getDateTime()+": Error, faltaron datos")	
 	}else{		
@@ -168,7 +171,10 @@ router.post('/login', async(req, res) => {
 							var payload = {
 								correo: email,
 								password: contraHASH,
-								nombre: nombre,
+								nombre1: nombre1,
+								nombre2: nombre2,
+								apellido1: apellido1,
+								apellido2: apellido2,
 								ciudad: ciudad,
 								estado: false,
 								fecha: new Date()
@@ -236,7 +242,12 @@ router.post('/auth', async(req, res) => {
 								}else{
 									res.json({
 										msg: "Token enviado correctamente",
-										code: token
+										code: 300,
+										token: token,
+										infoClient: {
+											nombre: result[0].nombre,
+											correo: result[0].correo
+										}
 									})
 								}
 							})
@@ -260,23 +271,30 @@ router.post('/auth', async(req, res) => {
 	}
 })
 
-router.post('/inicio', async(req, res) => {
+router.post('/updatetoken', async(req, res) => {
 	var token_req = req.body.token
 	
 	if(!token_req){
 		res.status(400).json({msg: "faltaron datos"})
 	}else{
-		await verifyToken(token_req, function(err, newToken){
-			if(err){
-				res.send("401")
-			}else{
-				res.send(newToken)
+		await verifyToken(token_req, function (err, newToken) {
+			if (err) {
+				res.json({
+					msg: "Ha ocurrido un error al generar el token, intentelo de nuevo",
+					code: 401
+				});
+			} else {
+				res.json({
+					msg: "Token enviado correctamente",
+					code: 300,
+					token: newToken
+				});
 			}
 		})
 	}
 })
 
-router.post('/token', async(req, res) => {
+router.post('/verifytoken', async(req, res) => {
 	var token_req = req.body.token
 	
 	if(!token_req){
@@ -289,6 +307,34 @@ router.post('/token', async(req, res) => {
 			}else{
 				res.send("1")
 				console.log("el token es valido")
+			}
+		})
+	}
+})
+
+router.post('/deleteaccount', async(req, res) =>{
+	var email = req.body.mail
+
+	if(!email){
+		console.log("faltaron datos");
+		res.json({
+			msg: "Error, faltaron datos",
+			code: 305
+		})
+	}else{
+		await Auth.deleteOne({correo: email}, function(err, result){
+			if(err){
+				console.log("Error eliminando")
+				res.json({
+					msg: "Error, compruebe su conexion e intentelo de nuevo",
+					code: 400
+				})
+			}else{
+				console.log("Cuenta eliminada satisfactoriamente")
+				res.json({
+					msg: "Su cuenta ha sido eliminada correctamente.",
+					code: 311
+				})
 			}
 		})
 	}

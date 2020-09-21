@@ -5,7 +5,10 @@ const Schema = mongoose.Schema;
 const schemaUsers = new Schema({
 	correo: String,
 	password: String,
-	nombre: String,
+    nombre1: String,
+    nombre2: String,
+    apellido1: String,
+    apellido2: String,
 	ciudad: String,
 	estado: Boolean,
 	googleId: String,

@@ -31,8 +31,7 @@ app.use(cookieParser());
 app.use(passport.initialize());
 app.use(passport.session());
 app.use(express.urlencoded({ extended: true }))     //application/x-www-form-urlencoded
-//app.use(express.static(path.join(__dirname, 'public')));
-app.set('views', path.join(__dirname, 'views'));
+app.use(express.static(path.join(__dirname, 'views')));
 //app.use(history());
 app.use('/api', router)
 app.set('puerto', process.env.PORT || 3000);

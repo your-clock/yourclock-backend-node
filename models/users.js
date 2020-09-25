@@ -33,11 +33,12 @@ schemaUsers.statics.findOneOrCreateByGoogle = function findOneOrCreate(condition
                 let values = {};
                 values.googleId = condition.profile.id,
                 values.correo = condition.profile.emails[0].value,
-				values.nombre = condition.profile.displayName || 'SIN NOMBRE',
+                values.nombre1 = condition.profile._json.given_name || 'SIN NOMBRE',
+                values.apellido1 = condition.profile._json.family_name || 'SIN APELLIDO',
 				values.ciudad = "NOT FOUND",
 				values.fecha = new Date(),
                 values.estado = true,
-                values.password = crypto.randomBytes(16).toString('hex');
+                values.password = crypto.HmacSHA1("P4SS_D3F4UL7", process.env.KEY_SHA1)
                 console.log('-------------- VALUES -----------------');
                 console.log(values);
                 self.create(values, (err, result) => {

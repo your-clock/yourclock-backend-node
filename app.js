@@ -8,7 +8,7 @@ const morgan = require('morgan');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const path = require('path');
-const history = require('connect-history-api-fallback');        // Middleware para Vue.js router modo history
+//const history = require('connect-history-api-fallback');        // Middleware para Vue.js router modo history
 const app = express();
 const crypto = require('crypto-js')
 const jwt = require('jsonwebtoken')
@@ -17,26 +17,66 @@ const router = express.Router();
 var http = require('http').createServer(app)
 const socketio = require('socket.io')(http)
 const axios = require('axios')
+var cookieParser = require('cookie-parser');
+const session = require('express-session');
+const mongoDBStore = require('connect-mongodb-session')(session);
+const assert = require('assert').strict;
 //--------------------------------------------------------
 
 //----------CONFIGURACION---------------------------------
 app.use(morgan('tiny'));
 app.use(cors());
 app.use(express.json());
+app.use(cookieParser());
 app.use(passport.initialize());
 app.use(passport.session());
 app.use(express.urlencoded({ extended: true }))     //application/x-www-form-urlencoded
 //app.use(express.static(path.join(__dirname, 'public')));
 app.set('views', path.join(__dirname, 'views'));
-app.use(history());
+//app.use(history());
 app.use('/api', router)
 app.set('puerto', process.env.PORT || 3000);
 app.use('/privacy_policy', function(req, res){
 	res.sendFile('views/privacy_policy.html');
 });
-app.use('google030be2b97e367ddd', function(req, res){
+app.use('/google030be2b97e367ddd', function(req, res){
 	res.sendFile('views/google030be2b97e367ddd.html');
 });
+
+let store;
+if(process.env.NODE_ENV === 'development'){
+  store = new session.MemoryStore;
+}else{
+  store = new mongoDBStore({
+    uri: process.env.MONGO_URI,
+    collection: 'sessions'
+  });
+  store.on('error', function(error){
+    assert.ifError(error);
+    assert.ok(false);
+  });
+}
+
+app.use(session({
+	cookie: { maxAge: 240 * 60 * 60 * 1000},
+	store: store,
+	saveUninitialized: true,
+	resave: 'true',
+	secret: process.env.SECRET_SESSION
+}));
+
+/*app.use(function (req, res, next) {
+	// Website you wish to allow to connect
+	res.setHeader('Access-Control-Allow-Origin', '*');
+	// Request methods you wish to allow
+	res.setHeader('Access-Control-Allow-Methods', 'GET, HEAD, POST, OPTIONS, PUT, PATCH, DELETE');
+	// Request headers you wish to allow
+	res.setHeader('Access-Control-Allow-Headers', 'Access-Control-Allow-Headers, Origin,Accept, X-Requested-With, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers,X-Access-Token,XKey,Authorization');
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+	// Pass to next layer of middleware
+	next();
+  });*/
+  
 //-------------------------------------------------------
 
 //--------------------SERVIDOR---------------------------
@@ -117,15 +157,27 @@ transporter.verify(function(error, success) {
 
 //------------------GOOGLE VERIFICATION--------------------
 
-app.get('/api/auth/google',
-    passport.authenticate('google', { scope: ['profile', 'email'] })
-);
+/*router.get('/auth/google', function(req, res){
+	var url = googleAuth.urlGoogle();
+	res.send(url);
+});
 
-app.get('/auth/google/callback', passport.authenticate( 'google', {
-    successRedirect: '/inicio',
-    failureRedirect: '/error'
-  })
-);
+router.get('/auth/google/callback', function(req, res) {
+	console.log(" --- ");
+	console.log(req.query);
+	var info = googleAuth.getGoogleAccountFromCode(req.query.code)
+	console.log(info);
+	res.send("OK google")
+});*/
+
+router.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }), function(req, res){
+	res.send("OK in passport")
+});
+
+router.get('/auth/google/callback', passport.authenticate('google'), function(req ,res){
+	socketio.emit('google',"OK")
+	res.send("Usuario autenticado existosamente")
+});
 
 //---------------------------------------------------------
 

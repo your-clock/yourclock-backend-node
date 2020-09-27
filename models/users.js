@@ -5,7 +5,10 @@ const Schema = mongoose.Schema;
 const schemaUsers = new Schema({
 	correo: String,
 	password: String,
-	nombre: String,
+    nombre1: String,
+    nombre2: String,
+    apellido1: String,
+    apellido2: String,
 	ciudad: String,
 	estado: Boolean,
 	googleId: String,
@@ -14,14 +17,10 @@ const schemaUsers = new Schema({
 
 schemaUsers.statics.findOneOrCreateByGoogle = function findOneOrCreate(condition, callback){
     const self = this;
-    console.log('-------------- CONDITION --------------');
-    console.log(condition);
     self.findOne({
         $or: [
             {'googleId': condition.profile.id}, {'email': condition.profile.emails[0].value}
         ]}, (err, result) => {
-            console.log('--------------- RESULT -----------------');
-            console.log(result);
             if(err) { console.log(err); }
             if(result){
                 if(err) { console.log(err); }
@@ -30,15 +29,18 @@ schemaUsers.statics.findOneOrCreateByGoogle = function findOneOrCreate(condition
                 let values = {};
                 values.googleId = condition.profile.id,
                 values.correo = condition.profile.emails[0].value,
-				values.nombre = condition.profile.displayName || 'SIN NOMBRE',
+                values.nombre1 = condition.profile._json.given_name || 'SIN NOMBRE',
+                values.apellido1 = condition.profile._json.family_name || 'SIN APELLIDO',
 				values.ciudad = "NOT FOUND",
 				values.fecha = new Date(),
                 values.estado = true,
-                values.password = crypto.randomBytes(16).toString('hex');
-                console.log('-------------- VALUES -----------------');
-                console.log(values);
+                values.password = crypto.HmacSHA1(process.env.PWD_OPTIONAL, process.env.KEY_SHA1)
                 self.create(values, (err, result) => {
-                    if(err) { console.log(err); }
+                    if(err) {
+                        console.log(err);
+                    }else{
+                        console.log("Usuario registrado por google exitosamente");
+                    }
                     return callback(err, result)
                 })
             }

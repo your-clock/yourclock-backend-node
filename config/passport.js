@@ -37,9 +37,6 @@ passport.use(new GoogleStrategy({
         callbackURL: process.env.HOST + '/api/auth/google/callback'
     },
     function(request, accessToken, refreshToken, profile, cb) {
-        console.log('-------------- PROFILE --------------');
-        console.log(profile);
-
         Usuario.findOneOrCreateByGoogle({profile}, function (err, user) {
             return cb(err, user);
         });

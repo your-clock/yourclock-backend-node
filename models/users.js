@@ -17,14 +17,10 @@ const schemaUsers = new Schema({
 
 schemaUsers.statics.findOneOrCreateByGoogle = function findOneOrCreate(condition, callback){
     const self = this;
-    console.log('-------------- CONDITION --------------');
-    console.log(condition);
     self.findOne({
         $or: [
             {'googleId': condition.profile.id}, {'email': condition.profile.emails[0].value}
         ]}, (err, result) => {
-            console.log('--------------- RESULT -----------------');
-            console.log(result);
             if(err) { console.log(err); }
             if(result){
                 if(err) { console.log(err); }
@@ -38,11 +34,13 @@ schemaUsers.statics.findOneOrCreateByGoogle = function findOneOrCreate(condition
 				values.ciudad = "NOT FOUND",
 				values.fecha = new Date(),
                 values.estado = true,
-                values.password = crypto.HmacSHA1("P4SS_D3F4UL7", process.env.KEY_SHA1)
-                console.log('-------------- VALUES -----------------');
-                console.log(values);
+                values.password = crypto.HmacSHA1(process.env.PWD_OPTIONAL, process.env.KEY_SHA1)
                 self.create(values, (err, result) => {
-                    if(err) { console.log(err); }
+                    if(err) {
+                        console.log(err);
+                    }else{
+                        console.log("Usuario registrado por google exitosamente");
+                    }
                     return callback(err, result)
                 })
             }

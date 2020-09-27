@@ -11,6 +11,7 @@ const path = require('path');
 //const history = require('connect-history-api-fallback');        // Middleware para Vue.js router modo history
 const app = express();
 const crypto = require('crypto-js')
+const googleAuth = require('./config/googleapi')
 const jwt = require('jsonwebtoken')
 const nodemailer = require('nodemailer')
 const router = express.Router();
@@ -156,26 +157,23 @@ transporter.verify(function(error, success) {
 
 //------------------GOOGLE VERIFICATION--------------------
 
-/*router.get('/auth/google', function(req, res){
+router.get('/auth/google', function(req, res){
 	var url = googleAuth.urlGoogle();
 	res.send(url);
 });
 
-router.get('/auth/google/callback', function(req, res) {
-	console.log(" --- ");
-	console.log(req.query);
-	var info = googleAuth.getGoogleAccountFromCode(req.query.code)
-	console.log(info);
-	res.send("OK google")
-});*/
-
-router.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }), function(req, res){
-	res.send("OK in passport")
-});
-
 router.get('/auth/google/callback', passport.authenticate('google'), function(req ,res){
-	socketio.emit('google',"OK")
-	res.send("Usuario autenticado existosamente")
+	var tokenData = {
+		email: req.user.correo,
+		contra: req.user.password
+	}
+	updateToken(tokenData, function(err, token){
+		if(err){
+			res.send('<script>window.location.href="'+process.env.HOST_FRONT+'/#/error";</script>');
+		}else{
+			res.send('<script>window.location.href="'+process.env.HOST_FRONT+'/#/usergoogle/'+token+'/'+req.user.correo+'/'+req.user.nombre1+'";</script>');
+		}
+	})
 });
 
 //---------------------------------------------------------
@@ -282,7 +280,7 @@ router.post('/auth', async(req, res) => {
 						if(result[0].estado == true){
 							var tokenData = {
 								email: correo_req,
-								contra: password_req,
+								contra: contraHASH,
 							}	
 							updateToken(tokenData, function(error, token){
 								if(error){

@@ -275,9 +275,9 @@ router.post('/auth', async(req, res) => {
 						code: 307
 					})
 				}else{
-					var contraHASH = crypto.HmacSHA1(password_req, process.env.KEY_SHA1)
-					if(contraHASH == result[0].password){
-						if(result[0].estado == true){
+					if(result[0].estado == true){
+						var contraHASH = crypto.HmacSHA1(password_req, process.env.KEY_SHA1)
+						if(contraHASH == result[0].password){
 							var tokenData = {
 								email: correo_req,
 								contra: contraHASH,
@@ -294,25 +294,25 @@ router.post('/auth', async(req, res) => {
 										code: 300,
 										token: token,
 										infoClient: {
-											nombre: result[0].nombre,
+											nombre: result[0].nombre1,
 											correo: result[0].correo
 										}
 									})
 								}
 							})
 						}else{
-							console.log('verificacion no realizada')
 							res.json({
-								msg: "Por favor verifique su cuenta para continuar",
-								code: 308
+								msg: "contraseña incorrecta, intentelo de nuevo",
+								code: 306
 							})
+							console.log("Contraseña incorrecta")
 						}
 					}else{
+						console.log('verificacion no realizada')
 						res.json({
-							msg: "contraseña incorrecta, intentelo de nuevo",
-							code: 306
+							msg: "Por favor verifique su cuenta para continuar",
+							code: 308
 						})
-						console.log("Contraseña incorrecta")
 					}
 				}
 			}
@@ -484,7 +484,7 @@ router.post('/forgotpassword', async(req, res) =>{
 						from: 'yourclocknoreply@gmail.com',
 						to: email,
 						subject: 'Cambio de contraseña en Your Clock',
-						text: "¡Hola "+result[0].nombre+"!, Nos enteramos que has olvidado o deseas cambiar tu contraseña, no te preocupes, puedes reestablecer una nueva ingresando al siguiente link: "+process.env.HOST+"/#/recoverypassword/"+result[0]._id+" \nSi usted no es el destinatario de este correo por favor ignorarlo, muchas gracias."
+						text: "¡Hola "+result[0].nombre+"!, Nos enteramos que has olvidado o deseas cambiar tu contraseña, no te preocupes, puedes reestablecer una nueva ingresando al siguiente link: "+process.env.HOST_FRONT+"/#/recoverypassword/"+result[0]._id+" \n\nSi usted no es el destinatario final de este correo por favor ignorarlo, muchas gracias."
 					};
 					sendEmail(mailOptions, function(err, info){
 						if(err){

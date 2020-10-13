@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 const crypto = require('crypto-js')
 const Schema = mongoose.Schema;
+const common = require('../config/common-functions')
 
 const schemaUsers = new Schema({
 	correo: String,
@@ -14,6 +15,102 @@ const schemaUsers = new Schema({
 	googleId: String,
 	fecha: Date
 })
+
+schemaUsers.statics.findByEmail = function findByEmail(email, callback){
+    const self = this;
+    self.find({correo: email}, function(err, result){
+        if(err){
+            return callback(err, null)
+        }else{
+            if(result == ""){
+                return callback(null, null)
+            }else{
+                return callback(null, result[0])
+            }
+        }
+    })
+}
+
+schemaUsers.statics.updateStateByEmail = function updateStateByEmail(email, callback){
+    const self = this
+    self.updateOne({correo: email},{$set: {estado: true}}, function(err, resullt){
+        if(err){
+            return callback(err)
+        }else{
+            return callback(null)
+        }
+    })
+}
+
+schemaUsers.statics.updatePasswordById = function updatePasswordByEmail(credentials, callback){
+    const self = this
+    var contraHASH = crypto.HmacSHA1(credentials.pass, process.env.KEY_SHA1)
+    self.updateOne({_id: credentials.id},{$set: {password: contraHASH}}, function(err, result){
+        if(err){
+            return callback(err)
+        }else{
+            return callback(null)
+        }
+    })
+}
+
+schemaUsers.statics.sendEmailToUser = function sendEmailToUser(mailOptions, callback){
+    common.sendEmail(mailOptions, function(err, info){
+        if(err){
+            return callback(err)
+        }else{
+            return callback(null)
+        }
+    })
+}
+
+schemaUsers.statics.authenticateUser = function authenticateUser(state, passwordDB, passwordUser, callback){
+    if(state == true){
+        var passwordHASH = crypto.HmacSHA1(passwordUser, process.env.KEY_SHA1)
+        if(passwordHASH == passwordDB){
+            return callback(true, true)
+        }else{
+            return callback(false, true)
+        }
+    }else{
+        return callback(false, false)
+    }
+}
+
+schemaUsers.statics.createUser = function createUser(userInfo, callback){
+    const self = this;
+    var contraHASH = crypto.HmacSHA1(userInfo.pass, process.env.KEY_SHA1)
+    var payload = {
+        correo: userInfo.mail,
+        password: contraHASH,
+        nombre1: userInfo.name1,
+        nombre2: userInfo.name2,
+        apellido1: userInfo.lastName1,
+        apellido2: userInfo.lastName2,
+        ciudad: userInfo.city,
+        estado: false,
+        fecha: new Date()
+    }
+    var myData = new self(payload)
+    myData.save().then(item => {
+        return callback(null)
+    })
+    .catch(err => {
+        return callback(err)
+    })
+}
+
+schemaUsers.statics.deleteUser = function deleteUser(email, callback){
+    const self = this
+    self.deleteOne({correo: email}, function(err, result){
+        if(err){
+            console.log(err);
+            return callback(err)
+        }else{
+            return callback(null)
+        }
+    })
+}
 
 schemaUsers.statics.findOneOrCreateByGoogle = function findOneOrCreate(condition, callback){
     const self = this;

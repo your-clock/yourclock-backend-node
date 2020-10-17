@@ -4,16 +4,59 @@ const Schema = mongoose.Schema;
 const common = require('../config/common-functions')
 
 const schemaUsers = new Schema({
-	correo: String,
-	password: String,
-    nombre1: String,
-    nombre2: String,
-    apellido1: String,
-    apellido2: String,
-	ciudad: String,
+	correo: {
+        type: String,
+        required: true,
+        max: 255,
+        min: 6
+    },
+	password: {
+        type: String,
+        required: true,
+        max: 1024,
+        min: 8
+    },
+    nombre1: {
+        type: String,
+        required: true,
+        max: 255,
+        min: 1
+    },
+    nombre2: {
+        type: String,
+        required: true,
+        max: 255,
+        min: 1
+    },
+    apellido1: {
+        type: String,
+        required: true,
+        max: 255,
+        min: 1
+    },
+    apellido2: {
+        type: String,
+        required: true,
+        max: 255,
+        min: 1
+    },
+	ciudad: {
+        type: String,
+        required: true,
+        max: 255,
+        min: 1
+    },
 	estado: Boolean,
-	googleId: String,
-	fecha: Date
+	googleId: {
+        type: String,
+        required: true,
+        max: 1024,
+        min: 6
+    },
+	fecha: {
+        type: Date,
+        default: Date.now
+    }
 })
 
 schemaUsers.statics.findByEmail = function findByEmail(email, callback){

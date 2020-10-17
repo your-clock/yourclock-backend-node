@@ -8,7 +8,6 @@ const path = require('path');
 const app = express();
 const googleAuth = require('./config/googleapi')
 const common = require('./config/common-functions')
-const Auth = require('./models/users');
 const token = require('./models/token')
 const router = express.Router();
 var http = require('http').createServer(app)
@@ -27,7 +26,6 @@ app.use(passport.initialize());
 app.use(passport.session());
 app.use(express.urlencoded({ extended: true }))
 app.use(express.static(path.join(__dirname, 'views')));
-app.use('/api', router)
 app.set('puerto', process.env.PORT || 3000);
 app.use('/privacy_policy', function(req, res){
 	res.sendFile('views/privacy_policy.html');
@@ -93,6 +91,11 @@ socketio.on("connection", socket => {
 	console.log(common.getDateTime()+": conectado por socket")
 })
 
+var userRoutes = require('./routes/users')
+var tokenRoutes = require('./routes/token')
+
+app.use('/api/user', userRoutes);
+app.use('/api/token', tokenRoutes);
 
 router.get('/auth/google', function(req, res){
 	var url = googleAuth.urlGoogle();
@@ -113,228 +116,6 @@ router.get('/auth/google/callback', passport.authenticate('google'), function(re
 	})
 });
 
-router.post('/login', (req, res) => {
-	let userInfo = req.body
-
-	if(!userInfo.mail || !userInfo.pass || !userInfo.name1 || !userInfo.lastName1 || !userInfo.city){
-		res.json({
-			code: 305,
-			msg: "Llene todos los campos para completar el registro"
-		})
-		//console.log(common.getDateTime()+": Error, faltaron datos")	
-	}else{
-		Auth.findByEmail(userInfo.mail, function(err, userExist){
-			if(err){
-				res.json({
-					code: 400,
-					msg: "Error, compruebe su conexion e intentelo de nuevo"
-				})
-			}else if(userExist){
-				res.json({
-					msg: "Usuario ya existente, intentelo de nuevo",
-					code: 304
-				})
-			}else{
-				var mailOptions = {
-					from: 'no-reply@yourclock-app.com',
-					to: userInfo.mail,
-					subject: 'Verificacion cuenta en Your Clock',
-					html: {
-							path: __dirname+`/views/verification-${process.env.NODE_ENV}.html`
-					}
-				}
-				Auth.sendEmailToUser(mailOptions, function(err){
-					if(err){
-						res.json({
-							msg: "Error al enviar el correo, verifique su conexion, si el error persiste, intente mas tarde",
-            				code: 402
-						})
-					}else{
-						Auth.createUser(userInfo, function(err){
-							if(err){
-								res.json({
-									msg: "Error, compruebe su conexion e intentelo de nuevo",
-    								code: 400
-								})
-							}else{
-								res.json({
-									msg: "Usuario registrado correctamente, verifique su correo para autenticar su cuenta",
-        							code: 300
-								})
-							}
-						})
-					}
-				})
-			}
-		})	
-	}			
-})
-
-router.post('/auth', (req, res) => {
-
-	let userInfo = req.body
-
-	if(!userInfo.mail || !userInfo.pass){
-		res.json({
-			msg: "Por favor llene todos los campos para completar el registro",
-			code: 305
-		})
-	}else{
-		Auth.findByEmail(userInfo.mail, function(err, userExist){
-			if(err){
-				res.json({
-					msg: "Error, compruebe su conexion e intentelo de nuevo",
-					code: 400
-				})
-			}else if(!userExist){
-				res.json({
-					msg: "Correo incorrecto, intentelo de nuevo",
-					code: 307
-				})
-			}else{
-				let correoEncoding = Buffer.from(userExist.correo).toString('base64')
-				let nombreEncoding = Buffer.from(userExist.nombre1).toString('base64')
-				Auth.authenticateUser(userExist.estado, userExist.password, userInfo.pass, function(verified, authenticated){
-					if(verified && authenticated){
-						var tokenData = {
-							email: userInfo.mail,
-							contra: userExist.password,
-						}
-						token.createToken(tokenData, function(err, newToken){
-							if(err){
-								res.json({
-									msg: "Ha ocurrido un error al generar el token, intentelo de nuevo",
-									code: 401
-								})
-							}else{
-								res.json({
-									msg: "Token enviado correctamente",
-									code: 300,
-									token: newToken,
-									infoClient: {
-										nombre: nombreEncoding,
-										correo: correoEncoding
-									}
-								})
-							}
-						})
-					}else if(verified && !authenticated){
-						res.json({
-							msg: "contraseña incorrecta, intentelo de nuevo",
-							code: 306
-						})
-					}else if(!verified && !authenticated){
-						res.json({
-							msg: "Por favor verifique su cuenta para continuar",
-							code: 308
-						})
-					}
-				})
-			}
-		})
-	}
-})
-
-router.post('/updatetoken', (req, res) => {
-	var token_req = req.body.token
-	
-	if(!token_req){
-		res.status(400).json({msg: "faltaron datos"})
-	}else{
-		token.updateToken(token_req, function (err, newToken) {
-			if (err) {
-				res.json({
-					msg: "Ha ocurrido un error al generar el token, intentelo de nuevo",
-					code: 401
-				});
-			} else {
-				res.json({
-					msg: "Token enviado correctamente",
-					code: 300,
-					token: newToken
-				});
-			}
-		})
-	}
-})
-
-router.post('/verifytoken', (req, res) => {
-	var token_req = req.body.token
-	if(!token_req){
-		res.status(400).json("faltaron datos")
-	}else{
-		token.verifyToken(token_req, function(err) {
-			if(err){
-				res.send(false)
-			}else{
-				res.send(true)
-			}
-		})
-	}
-})
-
-router.delete('/deleteaccount', async(req, res) =>{
-	var email = req.body.mail
-
-	if(!email){
-		console.log("faltaron datos");
-		res.json({
-			msg: "Error, faltaron datos",
-			code: 305
-		})
-	}else{
-		Auth.deleteUser(email, function(err){
-			if(err){
-				console.log("Error eliminando")
-				res.json({
-					msg: "Error, compruebe su conexion e intentelo de nuevo",
-					code: 400
-				})
-			}else{
-				console.log("Cuenta eliminada satisfactoriamente")
-				res.json({
-					msg: "Su cuenta ha sido eliminada correctamente.",
-					code: 311
-				})
-			}
-		})
-	}
-})
-
-router.post('/verify', (req, res) => {
-	var email = req.body.mail
-
-	if(!email){
-		console.log('error, faltaron datos')
-		res.send("305")
-	}else{
-		Auth.findByEmail(email, function(err, userExist){
-			if(err){
-				console.log("Error consultando")
-				res.send("400")
-			}else if(!userExist){
-				console.log("Correo incorreto")
-				res.send("307")
-			}else{
-				if(userExist.estado == false){
-					Auth.updateStateByEmail(email, function(err){
-						if(err){
-							console.log("Error consultando")
-							res.send("400")
-						}else{
-							console.log("estado actualizado correctamente")
-							res.send("310")
-						}
-					})
-				}else{
-					res.send("309")
-					console.log('verificacion ya realizada')
-				}
-			}
-		})
-	}
-})
-
 router.post('/datos', (req, res) => {
 	var temperatura_amb = req.body.temp_amb
 	var temperatura_local = req.body.temp_local
@@ -344,7 +125,7 @@ router.post('/datos', (req, res) => {
 		res.send("OK")
 		datos.temperatura_amb = temperatura_amb
 		datos.temperatura_local = temperatura_local
-		socketio.emit('datos',datos)
+		socketio.emit('datos', datos)
 		console.log(datos)
 	}
 })
@@ -374,53 +155,3 @@ router.post('/alarma', (req, res) => {
 		})
 	}
 })
-
-router.post('/forgotpassword', (req, res) =>{
-	var email = req.body.mail
-	if(!email){
-		console.log('error, faltaron datos')
-		res.send("305")
-	}else{
-		Auth.findByEmail(email, function(err, userExist){
-			if(err){
-				console.log("Error consultando")
-				res.send("400")
-			}else if(!userExist){
-				console.log("Correo incorrecto")
-				res.send("307")
-			}else{
-				var mailOptions = {
-					from: 'yourclocknoreply@gmail.com',
-					to: email,
-					subject: 'Cambio de contraseña en Your Clock',
-					text: "¡Hola "+userExist.nombre+"!, Nos enteramos que has olvidado o deseas cambiar tu contraseña, no te preocupes, puedes reestablecer una nueva ingresando al siguiente link: "+process.env.HOST_FRONT+"/#/recoverypassword/"+userExist._id+" \n\nSi usted no es el destinatario final de este correo por favor ignorarlo, muchas gracias."
-				};
-				Auth.sendEmailToUser(mailOptions, function(err, info){
-					if(err){
-						res.send("402")
-					}else{
-						res.send("300")
-					}
-				})
-			}
-		})
-	}
-})
-
-router.post('/recoverypassword', (req, res) => {
-	var credentials = req.body
-	if(!credentials.id || !credentials.pass){
-		console.log('error, faltaron datos')
-		res.send("305")
-	}else{
-		Auth.updatePasswordById(credentials, function(err){
-			if(err){
-				console.log("Error consultando: "+err)
-				res.send("400")
-			}else{
-				console.log(common.getDateTime()+"----------------- CONTRASEÑA ACTUALIZADA -------------------")
-				res.send("310")
-			}
-		})
-	}
-}) 

@@ -1,19 +1,7 @@
 const passport = require('passport');
-const LocalStrategy = require('passport-local').Strategy;
 const Usuario = require('../models/users');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 //const FacebookTokenStrategy = require('passport-facebook-token');
-
-passport.use(new LocalStrategy(
-    function(email, password, done){
-        Usuario.findOne({email: email}, function(err, usuario){
-            if(err) return done(err);
-            if(!usuario) return done(null, false, { message: 'Email no existente o incorrecto'});
-            if(!usuario.validPassword(password)) return done(null, false, { message: 'Password incorrecto'});
-            return done(null, usuario);
-        });
-    }
-));
 
 /*passport.use(new FacebookTokenStrategy({
         clientID: process.env.FACEBOOK_ID,
@@ -34,7 +22,7 @@ passport.use(new LocalStrategy(
 passport.use(new GoogleStrategy({
         clientID:     process.env.GOOGLE_CLIENT_ID,
         clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-        callbackURL: process.env.HOST + '/api/auth/google/callback'
+        callbackURL: process.env.HOST + '/api/user/auth/google/callback'
     },
     function(request, accessToken, refreshToken, profile, cb) {
         Usuario.findOneOrCreateByGoogle({profile}, function (err, user) {

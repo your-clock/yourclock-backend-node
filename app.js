@@ -6,14 +6,12 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const path = require('path');
 const app = express();
-const googleAuth = require('./config/googleapi')
 const common = require('./config/common-functions')
-const token = require('./models/token')
 const router = express.Router();
-var http = require('http').createServer(app)
+const http = require('http').createServer(app)
 const socketio = require('socket.io')(http)
 const axios = require('axios')
-var cookieParser = require('cookie-parser');
+const cookieParser = require('cookie-parser');
 const session = require('express-session');
 const mongoDBStore = require('connect-mongodb-session')(session);
 const assert = require('assert').strict;
@@ -27,6 +25,7 @@ app.use(passport.session());
 app.use(express.urlencoded({ extended: true }))
 app.use(express.static(path.join(__dirname, 'views')));
 app.set('puerto', process.env.PORT || 3000);
+app.use('/api', router)
 app.use('/privacy_policy', function(req, res){
 	res.sendFile('views/privacy_policy.html');
 });
@@ -72,9 +71,7 @@ http.listen(app.get('puerto'), function () {
   console.log(common.getDateTime()+': App listening on port: '+ app.get('puerto')+' In environment: '+process.env.NODE_ENV);
 });
 
-const connectionstring = process.env.MONGO_URI
-
-mongoose.connect(connectionstring, {useNewUrlParser: true, useUnifiedTopology: true}, function(err, res){
+mongoose.connect(process.env.MONGO_URI, {useNewUrlParser: true, useUnifiedTopology: true}, function(err){
 	if(err){
 		console.log(common.getDateTime()+': Error conectando a Atlas: '+ err )
 	}else{
@@ -82,7 +79,7 @@ mongoose.connect(connectionstring, {useNewUrlParser: true, useUnifiedTopology: t
 	}
 })
 
-const datos = {
+var datos = {
 	temperatura_amb: 0,
 	temperatura_local: 0
 }
@@ -91,34 +88,15 @@ socketio.on("connection", socket => {
 	console.log(common.getDateTime()+": conectado por socket")
 })
 
-var userRoutes = require('./routes/users')
-var tokenRoutes = require('./routes/token')
+const userRoutes = require('./routes/users')
+const tokenRoutes = require('./routes/token')
 
 app.use('/api/user', userRoutes);
 app.use('/api/token', tokenRoutes);
 
-router.get('/auth/google', function(req, res){
-	var url = googleAuth.urlGoogle();
-	res.send(url);
-});
-
-router.get('/auth/google/callback', passport.authenticate('google'), function(req ,res){
-	var tokenData = {
-		email: req.user.correo,
-		contra: req.user.password
-	}
-	token.createToken(tokenData, function(err, token){
-		if(err){
-			res.send('<script>window.location.href="'+process.env.HOST_FRONT+'/#/error";</script>');
-		}else{
-			res.send('<script>window.location.href="'+process.env.HOST_FRONT+'/#/usergoogle/'+token+'/'+req.user.correo+'/'+req.user.nombre1+'";</script>');
-		}
-	})
-});
-
-router.post('/datos', (req, res) => {
-	var temperatura_amb = req.body.temp_amb
-	var temperatura_local = req.body.temp_local
+router.post('/api/datos', (req, res) => {
+	let temperatura_amb = req.body.temp_amb
+	let temperatura_local = req.body.temp_local
 	if(!temperatura_amb || !temperatura_local){
 		res.status(400).json("faltaron datos")
 	}else{
@@ -130,15 +108,15 @@ router.post('/datos', (req, res) => {
 	}
 })
 
-router.post('/alarma', (req, res) => {
-	var time = req.body.time
+router.post('/api/alarma', (req, res) => {
+	let time = req.body.time
 
 	if(!time){
 		res.status(400).json("faltaron datos")
 	}else{
-		var hora = time.substr(0,2);
-		var min = time.substr(3,4);
-		var alarma = hora+min
+		let hora = time.substr(0,2);
+		let min = time.substr(3,4);
+		let alarma = hora+min
 		axios.get('https://cloud.arest.io/reloj1/alarma',{
 			params: {
 				params: alarma,

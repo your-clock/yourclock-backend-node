@@ -1,5 +1,6 @@
 require('dotenv').config();
 const transporter = require('./email')
+var EmailTemplates = require('swig-email-templates');
 
 transporter.verify(function(error, success) {
 	if (error) {
@@ -12,22 +13,28 @@ transporter.verify(function(error, success) {
 function sendEmail(mailOptions, callback){
 	if(!mailOptions){
 		console.log(getDateTime()+":--------------- NO LLEGO OPCIONES DE MAIL --------------------\n")
-		callback(true, "No se recibio el parametro mailOptions")
-	}else{
-		transporter.sendMail(mailOptions, function(error, info){
-			if(error){
-				console.log(getDateTime()+":-------------- ERROR AL ENVIAR EL MENSAJE ------------------\n")
-                console.log(error)
-                transporter.close();
-				return callback(true, error)
-			}else{
-				console.log(getDateTime()+":-------------------- MENSAJE ENVIADO -----------------------\n")
-                console.log(info.response)
-                transporter.close();
-				return callback(false, info.response);
-			}
-		})
+		return callback(true, "No se recibio el parametro mailOptions")
 	}
+	transporter.sendMail(mailOptions, function(error, info){
+		if(error){
+			console.log(getDateTime()+":-------------- ERROR AL ENVIAR EL MENSAJE ------------------\n")
+			console.log(error)
+			transporter.close();
+			return callback(true, error)
+		}
+		console.log(getDateTime()+":-------------------- MENSAJE ENVIADO -----------------------\n")
+		console.log(info.response)
+		transporter.close();
+		return callback(false, info.response);
+	})
+}
+
+function renderHtml(plantilla, datos, callback) {
+	var templates = new EmailTemplates();
+	templates.render(plantilla, datos, function(err, html) {
+		if(err){ return callback(err, null) }
+		return callback(null, html)
+	})
 }
 
 function getDateTime(){
@@ -46,5 +53,6 @@ function getDateTime(){
 
 module.exports = {
     "getDateTime": getDateTime,
-    "sendEmail" : sendEmail  
+	"sendEmail" : sendEmail,
+	"renderHtml" : renderHtml 
 }

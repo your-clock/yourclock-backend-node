@@ -27,8 +27,8 @@ if(process.env.NODE_ENV === "production"){
 	};
 }else if(process.env.NODE_ENV === "development"){
 	mailConfig = {
-		host: 'smtp.ethereal.email',
-		port: 587,
+		host: process.env.host_email,
+		port: process.env.port_email,
 		auth: {
 			user: process.env.ethereal_user,
 			pass: process.env.ethereal_pwd

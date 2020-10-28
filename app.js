@@ -88,7 +88,7 @@ socketio.on("connection", socket => {
 	console.log(common.getDateTime()+": conectado por socket")
 })
 
-const userRoutes = require('./routes/users')
+const userRoutes = require('./routes/Users')
 const tokenRoutes = require('./routes/token')
 
 app.use('/api/user', userRoutes);

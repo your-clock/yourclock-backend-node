@@ -94,7 +94,7 @@ const tokenRoutes = require('./routes/token')
 app.use('/api/user', userRoutes);
 app.use('/api/token', tokenRoutes);
 
-router.post('/api/datos', (req, res) => {
+router.post('/datos', (req, res) => {
 	let temperatura_amb = req.body.temp_amb
 	let temperatura_local = req.body.temp_local
 	if(!temperatura_amb || !temperatura_local){
@@ -103,12 +103,12 @@ router.post('/api/datos', (req, res) => {
 		res.send("OK")
 		datos.temperatura_amb = temperatura_amb
 		datos.temperatura_local = temperatura_local
-		socketio.emit('datos', datos)
 		console.log(datos)
+		socketio.emit('datos', datos)
 	}
 })
 
-router.post('/api/alarma', (req, res) => {
+router.post('/alarma', (req, res) => {
 	let time = req.body.time
 
 	if(!time){

@@ -112,24 +112,34 @@ router.post('/alarma', (req, res) => {
 	let time = req.body.time
 
 	if(!time){
-		res.status(400).json("faltaron datos")
+		res.send("faltaron datos")
 	}else{
 		let hora = time.substr(0,2);
 		let min = time.substr(3,4);
 		let alarma = hora+min
-		axios.get('https://cloud.arest.io/reloj1/alarma',{
-			params: {
-				params: alarma,
-				key: process.env.KEY_ARESTIO
+		console.log(alarma);
+		
+		var config = {
+			method: 'post',
+			url: process.env.URL_THINGERIO,
+			headers: {
+				'Accept': 'application/json, text/plain, */*', 
+				'Content-Type': 'application/json;charset=UTF-8', 
+				'Authorization': process.env.TOKEN_THINGERIO
+			},
+			data: {
+				"in" : alarma
 			}
+		};
+		
+		axios(config)
+		.then(function (response) {
+			console.log(JSON.stringify(response.data));
+			res.send("OK")
 		})
-		.then(response => {
-			console.log(response.data)
-			res.send(response.data)
-		})
-		.catch(error => {
-			console.log("error: "+error)
-			res.send(error.message)
-		})
+		.catch(function (error) {
+			console.log(error);
+			res.send(error)
+		});
 	}
 })

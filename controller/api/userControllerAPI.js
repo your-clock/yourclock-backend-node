@@ -18,6 +18,66 @@ const schemaAuth = joi.object({
     pass: joi.string().min(8).required(),
 })
 
+/**
+*@api{post}/login Peticion para registrar un usuario
+*@apiVersion 0.0.0
+*@apiName LoginUser
+*@apiGroup Usuario
+*
+*@apiParam{String} mail Correo del usuario a registrar
+*@apiParam{String{min. 8}} pass Contraseña del usuario a registrar
+*@apiParam{String} name1 Primer nombre del usuario a registrar
+*@apiParam{String} [name2] Segundo nombre del usuario a registrar
+*@apiParam{String} lastName1 Primer apellido del usuario a registrar
+*@apiParam{String} [lastName2] Segundo apellido del usuario a registrar
+*@apiParam{String} city Ciudad del usuario a registrar
+*
+*@apiParamExample {json} JSON de ejemplo
+* {
+*    "mail": "ejemplo@tudominio.com",
+*    "pass": "H0l4Mund0",
+*    "name1": "Erney",
+*    "name2": "David",
+*    "lastName1": "Garcia",
+*    "lastName2": "Vergara",
+*    "city": "Bogota"
+* }
+*
+*@apiSuccess (Exitoso: 2XX) {String} msg Descripcion del resultado obtenido
+*@apiSuccess (Exitoso: 2XX) {Number} code Codigo del resultado obtenido
+*
+*@apiSuccessExample {json} JSON de respuesta exitosa
+* HTTP/1.1 201 Created
+* {
+*    msg: "Usuario registrado correctamente, verifique su correo para autenticar su cuenta",
+*    code: 300
+* }
+*
+*@apiError (Error cliente: 4XX) {String} msg Descripcion del error obtenido
+*@apiError (Error cliente: 4XX) {Number} code Codigo del error obtenido
+*@apiError (Error cliente: 4XX) {String} errorDetail Mensaje del error obtenido
+*@apiError (Error cliente: 4XX) {String} errorKey Nombre del elemento obtenido
+*
+*@apiErrorExample {json} JSON de respuesta para error de cliente
+* HTTP/1.1 400 Bad Request
+* {
+*    msg: "Por favor revise su mail",
+*    code: 305,
+*    errorKey: mail,
+*    errorDetail: "\"mail\" must be a valid email"
+* }
+*
+*@apiError (Error servidor: 5XX) {String} msg Descripcion del error obtenido
+*@apiError (Error servidor: 5XX) {Number} code Codigo del error obtenido
+*
+*@apiErrorExample {json} JSON de respuesta para error de servidor
+* HTTP/1.1 502 Bad Gateway
+* {
+*    msg: "Error, compruebe su conexion e intentelo de nuevo",
+*    code: 400
+* }
+*/
+
 exports.userLogin = (req, res) => {
 
 	let userInfo = req.body
@@ -29,7 +89,7 @@ exports.userLogin = (req, res) => {
             errorKey: error.details[0].context.key,
             code: 305,
             msg: "Por favor revise su "+error.details[0].context.key
-        }) 
+        })
     }
 
     Auth.findByEmail(userInfo.mail, function(err, userExist){
@@ -70,14 +130,73 @@ exports.userLogin = (req, res) => {
                         code: 400
                     })
                 }
-                return res.json({
+                return res.status(201).json({
                     msg: "Usuario registrado correctamente, verifique su correo para autenticar su cuenta",
                     code: 300
                 })
             })
         })
-    })				
+    })
 }
+
+/**
+*@api{post}/auth Peticion para autenticar a un usuario
+*@apiVersion 0.0.0
+*@apiName AuthUser
+*@apiGroup Usuario
+*
+*@apiParam{String} mail Correo del usuario a autenticar
+*@apiParam{String{min. 8}} pass Contraseña del usuario a autenticar
+*
+*@apiParamExample {json} JSON de ejemplo
+* {
+*    "mail": "ejemplo@tudominio.com",
+*    "pass": "H0l4Mund0"
+* }
+*
+*@apiSuccess (Exitoso: 2XX) {String} msg Descripcion del resultado obtenido
+*@apiSuccess (Exitoso: 2XX) {Number} code Codigo del resultado obtenido
+*@apiSuccess (Exitoso: 2XX) {Object} infoClient Informacion basica del usuario autenticado
+*@apiSuccess (Exitoso: 2XX) {String} infoClient.nombre Nombre encriptado del usuario autenticado
+*@apiSuccess (Exitoso: 2XX) {String} infoClient.correo Correo encriptado del usuario autenticado
+*@apiSuccess (Exitoso: 2XX) {String} infoClient.id ID encriptado del usuario autenticado
+*
+*@apiSuccessExample {json} JSON de respuesta exitosa
+* HTTP/1.1 200 OK
+* {
+*    code: 300,
+*    msg: "Usuario autenticado exitosamente",
+*    infoClient: {
+*        nombre: "RXJuZXk=",
+*        correo: "ZWplbXBsb0B0dWRvbWluaW8uY29t",
+*        id: "NWY5M2NkNTI4NjdlYjE1MmVjMjUwY2Uz"
+*    }
+* }
+*
+*@apiError (Error cliente: 4XX) {String} msg Descripcion del error obtenido
+*@apiError (Error cliente: 4XX) {Number} code Codigo del error obtenido
+*@apiError (Error cliente: 4XX) {String} errorDetail Mensaje del error obtenido
+*@apiError (Error cliente: 4XX) {String} errorKey Nombre del elemento obtenido
+*
+*@apiErrorExample {json} JSON de respuesta para error de cliente
+* HTTP/1.1 400 Bad Request
+* {
+*    msg: "Por favor revise su mail",
+*    code: 305,
+*    errorKey: mail,
+*    errorDetail: "\"mail\" must be a valid email"
+* }
+*
+*@apiError (Error servidor: 5XX) {String} msg Descripcion del error obtenido
+*@apiError (Error servidor: 5XX) {Number} code Codigo del error obtenido
+*
+*@apiErrorExample {json} JSON de respuesta para error de servidor
+* HTTP/1.1 502 Bad Gateway
+* {
+*    msg: "Error, compruebe su conexion e intentelo de nuevo",
+*    code: 400
+* }
+*/
 
 exports.authUser = (req, res) => {
 
@@ -90,7 +209,7 @@ exports.authUser = (req, res) => {
             errorKey: error.details[0].context.key,
             code: 305,
             msg: "Por favor revise su "+error.details[0].context.key
-        }) 
+        })
     }
 
     Auth.findByEmail(userInfo.mail, function(err, userExist){
@@ -131,17 +250,61 @@ exports.authUser = (req, res) => {
     })
 }
 
+/**
+*@api{post}/deleteaccount Peticion para eliminar a un usuario
+*@apiVersion 0.0.0
+*@apiName DeleteUser
+*@apiGroup Usuario
+*
+*@apiParam{String} mail Correo encriptado del usuario a eliminar
+*
+*@apiParamExample {json} JSON de ejemplo
+* {
+*    "mail": "ZWplbXBsb0B0dWRvbWluaW8uY29t"
+* }
+*
+*@apiSuccess (Exitoso: 2XX) {String} msg Descripcion del resultado obtenido
+*@apiSuccess (Exitoso: 2XX) {Number} code Codigo del resultado obtenido
+*
+*@apiSuccessExample {json} JSON de respuesta exitosa
+* HTTP/1.1 200 OK
+* {
+*    msg: "Su cuenta ha sido eliminada correctamente.",
+*    code: 311
+* }
+*
+*@apiError (Error cliente: 4XX) {String} msg Descripcion del error obtenido
+*@apiError (Error cliente: 4XX) {Number} code Codigo del error obtenido
+*
+*@apiErrorExample {json} JSON de respuesta para error de cliente
+* HTTP/1.1 400 Bad Request
+* {
+*    msg: "Error, faltaron datos",
+*    code: 305
+* }
+*
+*@apiError (Error servidor: 5XX) {String} msg Descripcion del error obtenido
+*@apiError (Error servidor: 5XX) {Number} code Codigo del error obtenido
+*
+*@apiErrorExample {json} JSON de respuesta para error de servidor
+* HTTP/1.1 500 Internal Server Error
+* {
+*    msg: "Error, compruebe su conexion e intentelo de nuevo",
+*    code: 400
+* }
+*/
+
 exports.deleteUser = (req, res) => {
 
     let email = req.body.mail
 
-	if(!email){
-		console.log("faltaron datos");
-		return res.json({
-			msg: "Error, faltaron datos",
-			code: 305
-		})
-	}
+    if(!email){
+    	console.log("faltaron datos");
+    	return res.json({
+    		msg: "Error, faltaron datos",
+    		code: 305
+    	})
+    }
     email = Buffer.from(email, 'base64').toString('ascii')
     Auth.deleteUser(email, function(err){
         if(err){
@@ -159,51 +322,158 @@ exports.deleteUser = (req, res) => {
     })
 }
 
+/**
+*@api{post}/verify Peticion para verificar la cuenta de un usuario
+*@apiVersion 0.0.0
+*@apiName VerifyUser
+*@apiGroup Usuario
+*
+*@apiParam{String} mail Correo encriptado del usuario a verificar
+*
+*@apiParamExample {json} JSON de ejemplo
+* {
+*    "mail": "ZWplbXBsb0B0dWRvbWluaW8uY29t"
+* }
+*
+*@apiSuccess (Exitoso: 2XX) {String} msg Descripcion del resultado obtenido
+*@apiSuccess (Exitoso: 2XX) {Number} code Codigo del resultado obtenido
+*
+*@apiSuccessExample {json} JSON de respuesta exitosa
+* HTTP/1.1 200 OK
+* {
+*    code: 310,
+*    msg: "estado actualizado correctamente"
+* }
+*
+*@apiError (Error cliente: 4XX) {String} msg Descripcion del error obtenido
+*@apiError (Error cliente: 4XX) {Number} code Codigo del error obtenido
+*
+*@apiErrorExample {json} JSON de respuesta para error de cliente
+* HTTP/1.1 400 Bad Request
+* {
+*    msg: "Error, faltaron datos",
+*    code: 305
+* }
+*
+*@apiError (Error servidor: 5XX) {String} msg Descripcion del error obtenido
+*@apiError (Error servidor: 5XX) {Number} code Codigo del error obtenido
+*
+*@apiErrorExample {json} JSON de respuesta para error de servidor
+* HTTP/1.1 500 Internal Server Error
+* {
+*    msg: "Error consultando",
+*    code: 400
+* }
+*/
+
 exports.verifyUser = (req, res) => {
 
-	let email = req.body.mail
+	  let email = req.body.mail
 
-	if(!email){
-		console.log('error, faltaron datos')
-		return res.send("305")
+	  if(!email){
+    		return res.json({
+            code: 305,
+            msg: "Error, faltaron datos"
+        })
     }
     Auth.findByEmail(Buffer.from(email, 'base64').toString('ascii'), function(err, userExist){
         if(err){
-            console.log("Error consultando")
-            return res.send("400")
+            return res.send({
+                code: 400,
+                msg: "Error consultando"
+            })
         }else if(!userExist){
-            console.log("Correo incorreto")
-            return res.send("307")
+            return res.send({
+                code: 307,
+                msg: "Correo incorrecto"
+            })
         }
         if(userExist.estado == false){
             Auth.updateStateByEmail(userExist.correo, function(err){
                 if(err){
-                    console.log("Error consultando")
-                    return res.send("400")
+                    return res.send({
+                        code: 400,
+                        msg: "Error consultando"
+                    })
                 }
-                console.log("estado actualizado correctamente")
-                return res.send("310")
+                return res.json({
+                    code: 310,
+                    msg: "estado actualizado correctamente"
+                })
             })
         }else{
-            console.log('verificacion ya realizada')
-            return res.send("309")
+            return res.json({
+                code: 309,
+                msg: "verificacion ya realizada"
+            })
         }
     })
 }
 
+/**
+*@api{post}/forgotpassword Peticion para solicitar cambio de contraseña
+*@apiVersion 0.0.0
+*@apiName ForgotPasswordUser
+*@apiGroup Usuario
+*
+*@apiParam{String} mail Correo del usuario a cambiar de contraseña
+*
+*@apiParamExample {json} JSON de ejemplo
+* {
+*    "mail": "ejemplo@tudominio.com"
+* }
+*
+*@apiSuccess (Exitoso: 2XX) {String} msg Descripcion del resultado obtenido
+*@apiSuccess (Exitoso: 2XX) {Number} code Codigo del resultado obtenido
+*
+*@apiSuccessExample {json} JSON de respuesta exitosa
+* HTTP/1.1 200 OK
+* {
+*    code: 300,
+*    msg: "Correo para cambiar contraseña enviado"
+* }
+*
+*@apiError (Error cliente: 4XX) {String} msg Descripcion del error obtenido
+*@apiError (Error cliente: 4XX) {Number} code Codigo del error obtenido
+*
+*@apiErrorExample {json} JSON de respuesta para error de cliente
+* HTTP/1.1 400 Bad Request
+* {
+*    msg: "Error, faltaron datos",
+*    code: 305
+* }
+*
+*@apiError (Error servidor: 5XX) {String} msg Descripcion del error obtenido
+*@apiError (Error servidor: 5XX) {Number} code Codigo del error obtenido
+*
+*@apiErrorExample {json} JSON de respuesta para error de servidor
+* HTTP/1.1 500 Internal Server Error
+* {
+*    msg: "Error consultando",
+*    code: 400
+* }
+*/
+
 exports.forgotPasswordUser = (req, res) =>{
-	var email = req.body.mail
-	if(!email){
-		console.log('error, faltaron datos')
-		return res.send("305")
-	}
+	  var email = req.body.mail
+  	if(!email){
+        return res.json({
+            code: 305,
+            msg: "Error, faltaron datos"
+        })
+  	}
     Auth.findByEmail(email, function(err, userExist){
         if(err){
             console.log("Error consultando; "+err)
-            return res.send("400")
+            return res.json({
+                code: 400,
+                msg: "Error consultando"
+            })
         }else if(!userExist){
-            console.log("Correo incorrecto")
-            return res.send("307")
+            return res.json({
+                code: 307,
+                msg: "Correo incorrecto"
+            })
         }
         let mailOptions = {
             from: 'yourclocknoreply@gmail.com',
@@ -218,28 +488,89 @@ exports.forgotPasswordUser = (req, res) =>{
         }
         Auth.sendEmailToUser(mailOptions, plantilla, datos, function(err, info){
             if(err){
-                return res.send("402")
+                return res.json({
+                    code: 402,
+                    msg: "Error al enviar el correo"
+                })
             }
-            return res.send("300")
+            return res.json({
+                code: 300,
+                msg: "Correo para cambiar contraseña enviado"
+            })
         })
     })
 }
 
+/**
+*@api{post}/recoverypassword Peticion para realizar cambio de contraseña
+*@apiVersion 0.0.0
+*@apiName RecoveryPasswordUser
+*@apiGroup Usuario
+*
+*@apiParam{String} id ID encriptado del usuario
+*@apiParam{String} pass Contraseña nueva del usuario
+*
+*@apiParamExample {json} JSON de ejemplo
+* {
+*    "id": "NWY5M2NkNTI4NjdlYjE1MmVjMjUwY2Uz",
+*    "pass": "Nu3v4_c0ntr4"
+* }
+*
+*@apiSuccess (Exitoso: 2XX) {String} msg Descripcion del resultado obtenido
+*@apiSuccess (Exitoso: 2XX) {Number} code Codigo del resultado obtenido
+*
+*@apiSuccessExample {json} JSON de respuesta exitosa
+* HTTP/1.1 200 OK
+* {
+*    code: 310,
+*    msg: "Contraseña reestablecida correctamente"
+* }
+*
+*@apiError (Error cliente: 4XX) {String} msg Descripcion del error obtenido
+*@apiError (Error cliente: 4XX) {Number} code Codigo del error obtenido
+*
+*@apiErrorExample {json} JSON de respuesta para error de cliente
+* HTTP/1.1 400 Bad Request
+* {
+*    msg: "Error, faltaron datos",
+*    code: 305
+* }
+*
+*@apiError (Error servidor: 5XX) {String} msg Descripcion del error obtenido
+*@apiError (Error servidor: 5XX) {Number} code Codigo del error obtenido
+*
+*@apiErrorExample {json} JSON de respuesta para error de servidor
+* HTTP/1.1 500 Internal Server Error
+* {
+*    msg: "Error consultando",
+*    code: 400
+* }
+*/
+
 exports.recoveryPasswordUser = (req, res) => {
-	var credentials = req.body
-	if(!credentials.id || !credentials.pass){
-		console.log('error, faltaron datos')
-		return res.send("305")
-	}
+  	var credentials = req.body
+  	if(!credentials.id || !credentials.pass){
+        return res.json({
+            code: 305,
+            msg: "Error, faltaron datos"
+        })
+  	}
     Auth.updatePasswordById(credentials, function(err){
         if(err){
-            console.log("Error consultando en recovery password: "+err)
-            return res.send("400")
+            return res.json({
+                code: 400,
+                msg: "Error consultando"
+            })
         }
         //console.log(common.getDateTime()+"----------------- CONTRASEÑA ACTUALIZADA -------------------")
-        return res.send("310")
+        return res.json({
+            code: 310,
+            msg: "Contraseña reestablecida correctamente"
+        })
     })
 }
+
+//*********************************** AUTENTICACION DE GOOGLE ************************************************
 
 exports.getUrlGoogle = function(req, res){
 	return res.send(Auth.getGoogleUrl());

@@ -84,7 +84,7 @@ exports.userLogin = (req, res) => {
 
     const {error} = schemaLogin.validate(userInfo);
     if (error) {
-        return res.json({
+        return res.status(400).json({
             errorDetail: error.details[0].message,
             errorKey: error.details[0].context.key,
             code: 305,
@@ -94,12 +94,13 @@ exports.userLogin = (req, res) => {
 
     Auth.findByEmail(userInfo.mail, function(err, userExist){
         if(err){
-            return res.json({
+            return res.status(500).json({
                 code: 400,
-                msg: "Error, compruebe su conexion e intentelo de nuevo"
+                msg: "Error, compruebe su conexion e intentelo de nuevo",
+                info: err
             })
         }else if(userExist){
-            return res.json({
+            return res.status(200).json({
                 msg: "Usuario ya existente, intentelo de nuevo",
                 code: 304
             })
@@ -118,14 +119,15 @@ exports.userLogin = (req, res) => {
         }
         Auth.sendEmailToUser(mailOptions, plantilla, datos, function(err){
             if(err){
-                return res.json({
+                return res.status(500).json({
                     msg: "Error al enviar el correo, verifique su conexion, si el error persiste, intente mas tarde",
-                    code: 402
+                    code: 402,
+                    info: err
                 })
             }
             Auth.createUser(userInfo, function(err){
                 if(err){
-                    return res.json({
+                    return res.status(500).json({
                         msg: "Error, compruebe su conexion e intentelo de nuevo",
                         code: 400
                     })

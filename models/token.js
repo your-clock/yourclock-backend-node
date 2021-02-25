@@ -35,9 +35,9 @@ function updateToken(token, callback){
             email: decoded.email,
             contra: decoded.contra
         }
-        self.createToken(tokenData, function(err, newToken){
-            if(err){
-                return callback(err, null)
+        self.createToken(tokenData, function(errorCreate, newToken){
+            if(errorCreate){
+                return callback(errorCreate, null)
             }
             return callback(null, newToken)
         })

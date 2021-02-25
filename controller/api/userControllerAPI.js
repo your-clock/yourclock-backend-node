@@ -18,6 +18,10 @@ const schemaAuth = joi.object({
     pass: joi.string().min(8).required(),
 })
 
+const schemaForgot = joi.object({
+    mail: joi.string().min(6).required().email()
+})
+
 /**
 *@api{post}/login Peticion para registrar un usuario
 *@apiVersion 0.0.0
@@ -432,7 +436,7 @@ exports.verifyUser = (req, res) => {
 * HTTP/1.1 200 OK
 * {
 *    code: 300,
-*    msg: "Correo para cambiar contraseña enviado"
+*    msg: "Mensaje enviado exitosamente, verifique su correo para cambiar su contraseña"
 * }
 *
 *@apiError (Error cliente: 4XX) {String} msg Descripcion del error obtenido
@@ -451,35 +455,44 @@ exports.verifyUser = (req, res) => {
 *@apiErrorExample {json} JSON de respuesta para error de servidor
 * HTTP/1.1 500 Internal Server Error
 * {
-*    msg: "Error consultando",
+*    msg: "Error consultando, por favor intente de nuevo",
 *    code: 400
 * }
 */
 
 exports.forgotPasswordUser = (req, res) =>{
-	  var email = req.body.mail
-  	if(!email){
-        return res.json({
+    var userInfo = req.body
+  	if(!userInfo.mail){
+        return res.status(400).json({
             code: 305,
             msg: "Error, faltaron datos"
         })
-  	}
-    Auth.findByEmail(email, function(err, userExist){
+    }
+    const {error} = schemaForgot.validate(userInfo);
+    if (error) {
+        return res.status(400).json({
+            errorDetail: error.details[0].message,
+            errorKey: error.details[0].context.key,
+            code: 306,
+            msg: "Por favor revise su "+error.details[0].context.key+" y vuelva a intentarlo"
+        })
+    }
+    Auth.findByEmail(userInfo.mail, function(err, userExist){
         if(err){
             console.log("Error consultando; "+err)
-            return res.json({
+            return res.status(500).json({
                 code: 400,
-                msg: "Error consultando"
+                msg: "Error consultando, por favor intente de nuevo"
             })
         }else if(!userExist){
-            return res.json({
+            return res.status(400).json({
                 code: 307,
-                msg: "Correo incorrecto"
+                msg: "Correo incorrecto o inexistente, compruebe la informacion"
             })
         }
         let mailOptions = {
             from: 'yourclocknoreply@gmail.com',
-            to: email,
+            to: userInfo.mail,
             subject: 'Cambio de contraseña en Your Clock'
         };
         var plantilla = path.join(__dirname, '../..', 'views/forgotPassword.html')
@@ -490,14 +503,14 @@ exports.forgotPasswordUser = (req, res) =>{
         }
         Auth.sendEmailToUser(mailOptions, plantilla, datos, function(err, info){
             if(err){
-                return res.json({
+                return res.status(500).json({
                     code: 402,
-                    msg: "Error al enviar el correo"
+                    msg: "Error al enviar el correo, intentelo de nuevo"
                 })
             }
-            return res.json({
+            return res.status(200).json({
                 code: 300,
-                msg: "Correo para cambiar contraseña enviado"
+                msg: "Mensaje enviado exitosamente, verifique su correo para cambiar su contraseña"
             })
         })
     })

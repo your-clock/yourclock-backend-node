@@ -96,12 +96,12 @@ exports.userLogin = (req, res) => {
         })
     }
 
-    Auth.findByEmail(userInfo.mail, function(err, userExist){
-        if(err){
+    Auth.findByEmail(userInfo.mail, function(errorFind, userExist){
+        if(errorFind){
             return res.status(500).json({
                 code: 400,
                 msg: "Error, compruebe su conexion e intentelo de nuevo",
-                info: err
+                info: errorFind
             })
         }else if(userExist){
             return res.status(200).json({
@@ -121,16 +121,16 @@ exports.userLogin = (req, res) => {
             email: Buffer.from(userInfo.mail).toString('base64'),
             base_url: process.env.HOST_FRONT
         }
-        Auth.sendEmailToUser(mailOptions, plantilla, datos, function(err){
-            if(err){
+        Auth.sendEmailToUser(mailOptions, plantilla, datos, function(errorSend){
+            if(errorSend){
                 return res.status(500).json({
                     msg: "Error al enviar el correo, verifique su conexion, si el error persiste, intente mas tarde",
                     code: 402,
-                    info: err
+                    info: error
                 })
             }
-            Auth.createUser(userInfo, function(err){
-                if(err){
+            Auth.createUser(userInfo, function(errorCreate){
+                if(errorCreate){
                     return res.status(500).json({
                         msg: "Error, compruebe su conexion e intentelo de nuevo",
                         code: 400
@@ -395,8 +395,8 @@ exports.verifyUser = (req, res) => {
             })
         }
         if(userExist.estado == false){
-            Auth.updateStateByEmail(userExist.correo, function(err){
-                if(err){
+            Auth.updateStateByEmail(userExist.correo, function(errorUpdate){
+                if(errorUpdate){
                     return res.send({
                         code: 400,
                         msg: "Error consultando"
@@ -501,8 +501,8 @@ exports.forgotPasswordUser = (req, res) =>{
             id: Buffer.from(userExist._id.toString()).toString('base64'),
             base_url: process.env.HOST_FRONT
         }
-        Auth.sendEmailToUser(mailOptions, plantilla, datos, function(err, info){
-            if(err){
+        Auth.sendEmailToUser(mailOptions, plantilla, datos, function(errorSend, info){
+            if(errorSend){
                 return res.status(500).json({
                     code: 402,
                     msg: "Error al enviar el correo, intentelo de nuevo"

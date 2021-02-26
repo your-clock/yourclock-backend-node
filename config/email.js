@@ -29,6 +29,7 @@ if(process.env.NODE_ENV === "production"){
 	mailConfig = {
 		host: process.env.host_email,
 		port: process.env.port_email,
+		requireTLS: true,
 		auth: {
 			user: process.env.ethereal_user,
 			pass: process.env.ethereal_pwd

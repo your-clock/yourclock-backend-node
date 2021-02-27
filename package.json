@@ -1,14 +1,14 @@
 {
-  "name": "pagina",
-  "version": "1.0.0",
-  "description": "",
+  "name": "your-clock",
+  "version": "1.0.1",
+  "description": "Backend de la pagina de Your-clock hecho en NodeJS",
   "main": "index.js",
   "scripts": {
     "start": "babel-node app.js --exec",
     "devbabel": "nodemon app.js --exec babel-node"
   },
   "keywords": [],
-  "author": "",
+  "author": "DavidG97",
   "license": "ISC",
   "dependencies": {
     "@babel/cli": "^7.7.5",

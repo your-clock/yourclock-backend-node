@@ -13,7 +13,7 @@ function verifyToken(token, callback){
 }
 
 function createToken(tokenData, callback){
-	jwt.sign(tokenData, process.env.KEY_TOKEN, {expiresIn: 60*60}, function(err, newToken){
+	jwt.sign(tokenData, process.env.KEY_TOKEN, {expiresIn: 60*60*24}, function(err, newToken){
 		if(err){
 			console.log(common.getDateTime()+":-------------------- TOKEN NO CREADO -----------------------\n")
 			console.log(err)

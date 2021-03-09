@@ -18,7 +18,7 @@ const assert = require('assert').strict;
 require('./config/redis-config')
 
 app.use(morgan('tiny'));
-app.use(cors());
+app.use(cors({origin: process.env.HOST_FRONT}));
 app.use(express.json());
 app.use(cookieParser());
 app.use(passport.initialize());
@@ -55,18 +55,6 @@ app.use(session({
 	resave: 'true',
 	secret: process.env.SECRET_SESSION
 }));
-
-/*app.use(function (req, res, next) {
-	// Website you wish to allow to connect
-	res.setHeader('Access-Control-Allow-Origin', '*');
-	// Request methods you wish to allow
-	res.setHeader('Access-Control-Allow-Methods', 'GET, HEAD, POST, OPTIONS, PUT, PATCH, DELETE');
-	// Request headers you wish to allow
-	res.setHeader('Access-Control-Allow-Headers', 'Access-Control-Allow-Headers, Origin,Accept, X-Requested-With, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers,X-Access-Token,XKey,Authorization');
-    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-	// Pass to next layer of middleware
-	next();
-  });*/
 
 http.listen(app.get('puerto'), function () {
   console.log(common.getDateTime()+': App listening on port: '+ app.get('puerto')+' In environment: '+process.env.NODE_ENV);

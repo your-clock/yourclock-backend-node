@@ -15,6 +15,7 @@ const cookieParser = require('cookie-parser');
 const session = require('express-session');
 const mongoDBStore = require('connect-mongodb-session')(session);
 const assert = require('assert').strict;
+require('./config/redis-config')
 
 app.use(morgan('tiny'));
 app.use(cors());

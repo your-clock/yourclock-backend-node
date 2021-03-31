@@ -48,15 +48,15 @@ const token = require('../../models/token')
 
 exports.updateToken = (req, res) => {
 
-	let uuid_req = req.body.uuid
+	const uuidReq = req.body.uuid
 
-	if(!uuid_req){
+	if(!uuidReq){
 		return res.status(400).json({
 			 code: 305,
 			 msg: "faltaron datos"
 		})
 	}
-	token.updateToken(uuid_req, function (err, uuid) {
+	token.updateToken(uuidReq, function (err, uuid) {
 		if (err) {
 			return res.status(500).json({
 				msg: "Ha ocurrido un error al generar el token, intentelo de nuevo",
@@ -68,6 +68,10 @@ exports.updateToken = (req, res) => {
 			code: 300,
 			uuid: uuid
 		});
+	})
+	return res.status(500).json({
+		msg: "Ha ocurrido interno en el servidor",
+		code: 403
 	})
 }
 

@@ -15,6 +15,7 @@ const cookieParser = require('cookie-parser');
 const session = require('express-session');
 const mongoDBStore = require('connect-mongodb-session')(session);
 const assert = require('assert').strict;
+require('./config/redis-config')
 
 app.use(morgan('tiny'));
 app.use(cors({origin: process.env.HOST_FRONT}));
@@ -56,24 +57,24 @@ app.use(session({
 }));
 
 http.listen(app.get('puerto'), function () {
-  console.log(common.getDateTime()+': App listening on port: '+ app.get('puerto')+' In environment: '+process.env.NODE_ENV);
+  console.log(`${common.getDateTime()}: App listening on port: ${app.get('puerto')} In environment: ${process.env.NODE_ENV}`);
 });
 
 mongoose.connect(process.env.MONGO_URI, {useNewUrlParser: true, useUnifiedTopology: true}, function(err){
 	if(err){
-		console.log(common.getDateTime()+': Error conectando a Atlas: '+ err )
+		console.log(`${common.getDateTime()}: Error conectando a Atlas: ${err}`)
 	}else{
-		console.log(common.getDateTime()+': Conectado a Atlas')
+		console.log(`${common.getDateTime()}: Conectado a Atlas`)
 	}
 })
 
 var datos = {
-	temperatura_amb: 0,
-	temperatura_local: 0
+	temperaturaAmb: 0,
+	temperaturaLocal: 0
 }
 
 socketio.on("connection", socket => {
-	console.log(common.getDateTime()+": conectado por socket")
+	console.log(`${common.getDateTime()}: conectado por socket`)
 })
 
 const userRoutes = require('./routes/Users')
@@ -83,43 +84,40 @@ app.use('/api/user', userRoutes);
 app.use('/api/token', tokenRoutes);
 
 router.post('/datos', (req, res) => {
-	let temperatura_amb = req.body.temp_amb
-	let temperatura_local = req.body.temp_local
-	if(!temperatura_amb || !temperatura_local){
+	const temperaturaAmb = req.body.temp_amb
+	const temperaturaLocal = req.body.temp_local
+	if(!temperaturaAmb || !temperaturaLocal){
 		res.status(400).json("faltaron datos")
 	}else{
 		res.send("OK")
-		datos.temperatura_amb = temperatura_amb
-		datos.temperatura_local = temperatura_local
-		console.log(datos)
+		datos.temperaturaAmb = temperaturaAmb
+		datos.temperaturaLocal = temperaturaLocal
+		console.log(`Los datos a enviar por socket son: ${datos}`)
 		socketio.emit('datos', datos)
 	}
 })
 
 router.post('/alarma', (req, res) => {
-	let time = req.body.time
-
+	const time = req.body.time
 	if(!time){
 		res.send("faltaron datos")
 	}else{
-		let hora = time.substr(0,2);
-		let min = time.substr(3,4);
-		let alarma = hora+min
-		console.log(alarma);
-		
+		const hora = time.substr(0,2);
+		const min = time.substr(3,4);
+		const alarma = hora+min
+		console.log(`La alarma a configurar es: ${alarma}`);
 		var config = {
 			method: 'post',
 			url: process.env.URL_THINGERIO,
 			headers: {
-				'Accept': 'application/json, text/plain, */*', 
-				'Content-Type': 'application/json;charset=UTF-8', 
+				'Accept': 'application/json, text/plain, */*',
+				'Content-Type': 'application/json;charset=UTF-8',
 				'Authorization': process.env.TOKEN_THINGERIO
 			},
 			data: {
 				"in" : alarma
 			}
 		};
-		
 		axios(config)
 		.then(function (response) {
 			console.log(JSON.stringify(response.data));

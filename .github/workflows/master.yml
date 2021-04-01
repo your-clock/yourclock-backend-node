@@ -24,3 +24,4 @@ jobs:
       with:
         args: >
           -Dsonar.branch.target=master
+          -Dsonar.branch.name=master

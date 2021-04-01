@@ -1,0 +1,26 @@
+name: building-and-deployment-dev
+
+on:
+  push:
+    branches: [ dev, david, feature/* ]
+  workflow_dispatch:
+
+env: 
+  project_name: "yourclock-backend"
+  language: "javascript" #javascript, java, python
+
+jobs:
+  sonar:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+    - name: SonarCloud Scan
+      uses: SonarSource/sonarcloud-github-action@master
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      with:
+        args: >
+          -Dsonar.branch.target=dev

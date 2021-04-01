@@ -24,4 +24,3 @@ jobs:
       with:
         args: >
           -Dsonar.branch.target=master
-          -Dsonar.login=${{ secrets.SONAR_TOKEN }}

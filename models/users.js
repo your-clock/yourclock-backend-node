@@ -101,8 +101,8 @@ schemaUsers.statics.sendEmailToUser = function sendEmailToUser(mailOptions, plan
     common.renderHtml(plantilla, datos, function(err, result) {
         if(err){ console.log(err); return callback(err) }
         mailOptions.html = result;
-        common.sendEmail(mailOptions, function(err, info){
-            if(err){ return callback(err) }
+        common.sendEmail(mailOptions, function(errorSend, info){
+            if(errorSend){ return callback(errorSend) }
             return callback(null)
         })
     })
@@ -159,15 +159,14 @@ schemaUsers.statics.getGoogleUrl = function getGoogleUrl(){
         process.env.GOOGLE_CLIENT_SECRET,
         process.env.HOST + '/api/user/auth/google/callback'
     );
-    const url = auth.generateAuthUrl({
+    return auth.generateAuthUrl({
         access_type: 'offline',
         prompt: 'consent',
         scope: [
             'profile',
             'email'
         ]
-    });
-    return url;
+    })
 }
 
 schemaUsers.statics.findOneOrCreateByGoogle = function findOneOrCreate(condition, callback){
@@ -182,21 +181,21 @@ schemaUsers.statics.findOneOrCreateByGoogle = function findOneOrCreate(condition
                 return callback(err, result)
             }
             let values = {};
-            values.googleId = condition.profile.id,
-            values.correo = condition.profile.emails[0].value,
-            values.nombre1 = condition.profile._json.given_name || 'SIN NOMBRE',
-            values.apellido1 = condition.profile._json.family_name || 'SIN APELLIDO',
-            values.ciudad = "NOT FOUND",
-            values.fecha = new Date(),
-            values.estado = true,
-            values.password = crypto.HmacSHA1(process.env.PWD_OPTIONAL, process.env.KEY_SHA1)
-            self.create(values, (err, result) => {
-                if(err) {
-                    console.log(err);
+            values.googleId = condition.profile.id;
+            values.correo = condition.profile.emails[0].value;
+            values.nombre1 = condition.profile._json.given_name || 'SIN NOMBRE';
+            values.apellido1 = condition.profile._json.family_name || 'SIN APELLIDO';
+            values.ciudad = "NOT FOUND";
+            values.fecha = new Date();
+            values.estado = true;
+            values.password = crypto.HmacSHA1(process.env.PWD_OPTIONAL, process.env.KEY_SHA1);
+            self.create(values, (errorCreate, resultCreate) => {
+                if(errorCreate) {
+                    console.log(errorCreate);
                 }else{
                     console.log("Usuario registrado por google exitosamente");
                 }
-                return callback(err, result)
+                return callback(errorCreate, resultCreate)
             })
         }
     )

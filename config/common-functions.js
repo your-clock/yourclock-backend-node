@@ -12,17 +12,17 @@ transporter.verify(function(error, success) {
 
 function sendEmail(mailOptions, callback){
 	if(!mailOptions){
-		console.log(getDateTime()+":--------------- NO LLEGO OPCIONES DE MAIL --------------------\n")
+		console.log(`${getDateTime()}:--------------- NO LLEGO OPCIONES DE MAIL --------------------\n`)
 		return callback(true, "No se recibio el parametro mailOptions")
 	}
 	transporter.sendMail(mailOptions, function(error, info){
 		if(error){
-			console.log(getDateTime()+":-------------- ERROR AL ENVIAR EL MENSAJE ------------------\n")
+			console.log(`${getDateTime()}:-------------- ERROR AL ENVIAR EL MENSAJE ------------------\n`)
 			console.log(error)
 			transporter.close();
 			return callback(true, error)
 		}
-		console.log(getDateTime()+":-------------------- MENSAJE ENVIADO -----------------------\n")
+		console.log(`${getDateTime()}:-------------------- MENSAJE ENVIADO -----------------------\n`)
 		console.log(info.response)
 		transporter.close();
 		return callback(false, info.response);
@@ -32,7 +32,9 @@ function sendEmail(mailOptions, callback){
 function renderHtml(plantilla, datos, callback) {
 	var templates = new EmailTemplates();
 	templates.render(plantilla, datos, function(err, html) {
-		if(err){ return callback(err, null) }
+		if(err){
+			return callback(err, null)
+		}
 		return callback(null, html)
 	})
 }
@@ -47,12 +49,12 @@ function getDateTime(){
 	month = (month < 10 ? "0" : "") + month
 	var day = date.getDate()
 	day = (day < 10 ? "0" : "") + day
-	return year  + '-' + month + '-' + day + ' ' + hour + '-' + min + '-' + sec
+	return `${year}-${month}-${day} ${hour}-${min}-${sec}`
 }
 //---------------------------------------------------------
 
 module.exports = {
     "getDateTime": getDateTime,
 	"sendEmail" : sendEmail,
-	"renderHtml" : renderHtml 
+	"renderHtml" : renderHtml
 }

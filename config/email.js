@@ -5,7 +5,7 @@ const nodemailer = require('nodemailer')
 
 
 var mailConfig;
-if(process.env.NODE_ENV === "production"){	
+if(process.env.NODE_ENV === "production"){
 	const myOAuth2Client = new OAuth2(
 		process.env.ID_EMAIL,
 		process.env.SECRET_EMAIL,
@@ -29,6 +29,7 @@ if(process.env.NODE_ENV === "production"){
 	mailConfig = {
 		host: process.env.host_email,
 		port: process.env.port_email,
+		requireTLS: true,
 		auth: {
 			user: process.env.ethereal_user,
 			pass: process.env.ethereal_pwd

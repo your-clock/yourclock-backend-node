@@ -27,6 +27,7 @@ function sendEmail(mailOptions, callback){
 		transporter.close();
 		return callback(false, info.response);
 	})
+	return callback(true, "Ha ocurrido un error inesperado al enviar el email")
 }
 
 function renderHtml(plantilla, datos, callback) {
@@ -51,7 +52,6 @@ function getDateTime(){
 	day = (day < 10 ? "0" : "") + day
 	return `${year}-${month}-${day} ${hour}-${min}-${sec}`
 }
-//---------------------------------------------------------
 
 module.exports = {
     "getDateTime": getDateTime,

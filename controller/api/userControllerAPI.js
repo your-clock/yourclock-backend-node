@@ -83,19 +83,16 @@ const schemaForgot = joi.object({
 */
 
 exports.userLogin = (req, res) => {
-
-	let userInfo = req.body
-
+	const userInfo = req.body
     const {error} = schemaLogin.validate(userInfo);
     if (error) {
         return res.status(400).json({
             errorDetail: error.details[0].message,
             errorKey: error.details[0].context.key,
             code: 305,
-            msg: "Por favor revise su "+error.details[0].context.key
+            msg: `Por favor revise su ${error.details[0].context.key}`
         })
     }
-
     Auth.findByEmail(userInfo.mail, function(errorFind, userExist){
         if(errorFind){
             return res.status(500).json({
@@ -143,6 +140,10 @@ exports.userLogin = (req, res) => {
             })
         })
     })
+    return res.status(500).json({
+		msg: "Ha ocurrido un error interno en el servidor",
+		code: 403
+	})
 }
 
 /**

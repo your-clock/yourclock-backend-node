@@ -16,6 +16,7 @@ function verifyToken(uuid, callback){
             console.log(common.getDateTime()+":--------------------- TOKEN VALIDADO -----------------------\n")
             return callback(null, decoded)
         })
+        return callback("Ha ocurrido un error inesperado", null)
     })
 }
 
@@ -35,14 +36,13 @@ function createToken(tokenData, callback){
 	})
 }
 
-function updateToken(uuid_req, callback){
-
+function updateToken(uuidReq, callback){
     const self = this
-    self.verifyToken(uuid_req, function(err, decoded){
+    self.verifyToken(uuidReq, function(err, decoded){
         if(err){
             return callback(err, null)
         }
-        let tokenData = {
+        const tokenData = {
             nombre: decoded.nombre,
             correo: decoded.correo,
             id: decoded.id,
@@ -54,7 +54,8 @@ function updateToken(uuid_req, callback){
             }
             return callback(null, uuid)
         })
-    })	
+        return callback("Ha ocurrido un error inesperado", null)
+    })
 }
 
 function deleteToken(uuid, callback) {

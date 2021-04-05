@@ -4,6 +4,11 @@ const error305 = {
 	code: 305,
 	msg: "faltaron datos"
 }
+const error403 = {
+	msg: "Ha ocurrido un error interno en el servidor",
+	code: 403
+}
+
 
 /**
 *@api{post}/updatetoken Peticion para actualizar token del usuario
@@ -71,10 +76,7 @@ exports.updateToken = (req, res) => {
 			uuid: uuid
 		});
 	})
-	return res.status(500).json({
-		msg: "Ha ocurrido un error interno en el servidor",
-		code: 403
-	})
+	return res.status(500).json(error403)
 }
 
 /**
@@ -120,10 +122,7 @@ exports.verifyToken =  (req, res) => {
 		}
 		return res.send(true)
 	})
-	return res.status(500).json({
-		msg: "Ha ocurrido un error interno en el servidor",
-		code: 403
-	})
+	return res.status(500).json(error403)
 }
 
 /**
@@ -196,10 +195,7 @@ exports.createToken = (req, res) => {
 			uuid: uuid
 		});
 	})
-	return res.status(500).json({
-		msg: "Ha ocurrido un error interno en el servidor",
-		code: 403
-	})
+	return res.status(500).json(error403)
 }
 
 /**
@@ -263,8 +259,5 @@ exports.deleteToken = (req, res) => {
 			msg: "Token eliminado exitosamente, ID: "+result
 	   })
 	})
-	return res.status(500).json({
-		msg: "Ha ocurrido un error interno en el servidor",
-		code: 403
-	})
+	return res.status(500).json(error403)
 }

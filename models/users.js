@@ -66,7 +66,7 @@ schemaUsers.statics.findByEmail = function findByEmail(email, callback){
         if(err){
             return callback(err, null)
         }
-        if(result == ""){
+        if(result === ""){
             return callback(null, null)
         }
         return callback(null, result[0])
@@ -87,8 +87,8 @@ schemaUsers.statics.updateStateByEmail = function updateStateByEmail(email, call
 
 schemaUsers.statics.updatePasswordById = function updatePasswordByEmail(credentials, callback){
     const self = this
-    let contraHASH = crypto.HmacSHA1(credentials.pass, process.env.KEY_SHA1)
-    let idDecode = Buffer.from(credentials.id, 'base64').toString('ascii');
+    const contraHASH = crypto.HmacSHA1(credentials.pass, process.env.KEY_SHA1)
+    const idDecode = Buffer.from(credentials.id, 'base64').toString('ascii');
     self.updateOne({_id: idDecode},{$set: {password: contraHASH}}, function(err, result){
         if(err){
             return callback(err)
@@ -99,19 +99,25 @@ schemaUsers.statics.updatePasswordById = function updatePasswordByEmail(credenti
 
 schemaUsers.statics.sendEmailToUser = function sendEmailToUser(mailOptions, plantilla, datos, callback){
     common.renderHtml(plantilla, datos, function(err, result) {
-        if(err){ console.log(err); return callback(err) }
+        if(err){
+            console.log(err);
+            return callback(err)
+        }
         mailOptions.html = result;
         common.sendEmail(mailOptions, function(errorSend, info){
-            if(errorSend){ return callback(errorSend) }
+            if(errorSend){
+                return callback(errorSend)
+            }
             return callback(null)
         })
+        return callback("Ha ocurrido un error inesperado")
     })
 }
 
 schemaUsers.statics.authenticateUser = function authenticateUser(state, passwordDB, passwordUser, callback){
-    if(state == true){
-        let passwordHASH = crypto.HmacSHA1(passwordUser, process.env.KEY_SHA1)
-        if(passwordHASH == passwordDB){
+    if(state){
+        const passwordHASH = crypto.HmacSHA1(passwordUser, process.env.KEY_SHA1)
+        if(passwordHASH === passwordDB){
             return callback(true, true)
         }
         return callback(false, true)
@@ -121,8 +127,8 @@ schemaUsers.statics.authenticateUser = function authenticateUser(state, password
 
 schemaUsers.statics.createUser = function createUser(userInfo, callback){
     const self = this;
-    let contraHASH = crypto.HmacSHA1(userInfo.pass, process.env.KEY_SHA1)
-    let payload = {
+    const contraHASH = crypto.HmacSHA1(userInfo.pass, process.env.KEY_SHA1)
+    const payload = {
         correo: userInfo.mail,
         password: contraHASH,
         nombre1: userInfo.name1,
@@ -133,7 +139,7 @@ schemaUsers.statics.createUser = function createUser(userInfo, callback){
         estado: false,
         fecha: new Date()
     }
-    let myData = new self(payload)
+    const myData = new self(payload)
     myData.save().then(item => {
         return callback(null)
     })
@@ -175,20 +181,25 @@ schemaUsers.statics.findOneOrCreateByGoogle = function findOneOrCreate(condition
         $or: [
             {'googleId': condition.profile.id}, {'email': condition.profile.emails[0].value}
         ]}, (err, result) => {
-            if(err) { console.log(err); }
+            if(err) {
+                console.log(err);
+            }
             if(result){
-                if(err) { console.log(err); }
+                if(err) {
+                    console.log(err);
+                }
                 return callback(err, result)
             }
-            let values = {};
-            values.googleId = condition.profile.id;
-            values.correo = condition.profile.emails[0].value;
-            values.nombre1 = condition.profile._json.given_name || 'SIN NOMBRE';
-            values.apellido1 = condition.profile._json.family_name || 'SIN APELLIDO';
-            values.ciudad = "NOT FOUND";
-            values.fecha = new Date();
-            values.estado = true;
-            values.password = crypto.HmacSHA1(process.env.PWD_OPTIONAL, process.env.KEY_SHA1);
+            const values = {
+                googleId: condition.profile.id,
+                correo: condition.profile.emails[0].value,
+                nombre1: condition.profile._json.given_name || 'SIN NOMBRE',
+                apellido1: condition.profile._json.family_name || 'SIN APELLIDO',
+                ciudad: "NOT FOUND",
+                fecha: new Date(),
+                estado: true,
+                password: crypto.HmacSHA1(process.env.PWD_OPTIONAL, process.env.KEY_SHA1)
+            }
             self.create(values, (errorCreate, resultCreate) => {
                 if(errorCreate) {
                     console.log(errorCreate);
@@ -197,40 +208,9 @@ schemaUsers.statics.findOneOrCreateByGoogle = function findOneOrCreate(condition
                 }
                 return callback(errorCreate, resultCreate)
             })
+            return callback("Ha ocurrido un error inesperado", null)
         }
     )
 }
-
-/*schemaUsers.statics.findOneOrCreateByFacebook = function findOneOrCreate(condition, callback){
-    const self = this;
-    console.log('-------------- CONDITION --------------');
-    console.log(condition);
-    self.findOne({
-        $or: [
-            {'facebookId': condition.profile.id}, {'email': condition.profile.emails[0].value}
-        ]}, (err, result) => {
-            console.log('--------------- RESULT -----------------');
-            console.log(result);
-            if(err) { console.log(err); }
-            if(result){
-                if(err) { console.log(err); }
-                callback(err, result)
-            }else{
-                let values = {};
-                values.facebookId = condition.profile.id,
-                values.email = condition.profile.emails[0].value,
-                values.nombre = condition.profile.displayName || 'SIN NOMBRE',
-                values.verificado = true,
-                values.password = crypto.randomBytes(16).toString('hex');
-                console.log('-------------- VALUES -----------------');
-                console.log(values);
-                self.create(values, (err, result) => {
-                    if(err) { console.log(err); }
-                    return callback(err, result)
-                })
-            }
-        }
-    )
-}*/
 
 module.exports = mongoose.model('Usuarios', schemaUsers);

@@ -22,6 +22,15 @@ const schemaForgot = joi.object({
     mail: joi.string().min(6).required().email()
 })
 
+const error403 = {
+	msg: "Ha ocurrido un error interno en el servidor",
+	code: 403
+}
+const error400 = {
+    code: 400,
+    msg: "Ha ocurrido un error en base de datos"
+}
+
 /**
 *@api{post}/login Peticion para registrar un usuario
 *@apiVersion 0.0.0
@@ -77,7 +86,7 @@ const schemaForgot = joi.object({
 *@apiErrorExample {json} JSON de respuesta para error de servidor
 * HTTP/1.1 502 Bad Gateway
 * {
-*    msg: "Error, compruebe su conexion e intentelo de nuevo",
+*    msg: "Ha ocurrido un error en base de datos",
 *    code: 400
 * }
 */
@@ -95,11 +104,7 @@ exports.userLogin = (req, res) => {
     }
     Auth.findByEmail(userInfo.mail, function(errorFind, userExist){
         if(errorFind){
-            return res.status(500).json({
-                code: 400,
-                msg: "Error, compruebe su conexion e intentelo de nuevo",
-                info: errorFind
-            })
+            return res.status(500).json(error400)
         }else if(userExist){
             return res.status(200).json({
                 msg: "Usuario ya existente, intentelo de nuevo",
@@ -128,22 +133,18 @@ exports.userLogin = (req, res) => {
             }
             Auth.createUser(userInfo, function(errorCreate){
                 if(errorCreate){
-                    return res.status(500).json({
-                        msg: "Error, compruebe su conexion e intentelo de nuevo",
-                        code: 400
-                    })
+                    return res.status(500).json(error400)
                 }
                 return res.status(201).json({
                     msg: "Usuario registrado correctamente, verifique su correo para autenticar su cuenta",
                     code: 300
                 })
             })
+            return res.status(500).json(error403)
         })
+        return res.status(500).json(error403)
     })
-    return res.status(500).json({
-		msg: "Ha ocurrido un error interno en el servidor",
-		code: 403
-	})
+    return res.status(500).json(error403)
 }
 
 /**
@@ -200,31 +201,25 @@ exports.userLogin = (req, res) => {
 *@apiErrorExample {json} JSON de respuesta para error de servidor
 * HTTP/1.1 502 Bad Gateway
 * {
-*    msg: "Error, compruebe su conexion e intentelo de nuevo",
+*    msg: "Ha ocurrido un error en base de datos",
 *    code: 400
 * }
 */
 
 exports.authUser = (req, res) => {
-
-	let userInfo = req.body
-
+	const userInfo = req.body
 	const {error} = schemaAuth.validate(userInfo);
     if (error) {
         return res.status(400).json({
             errorDetail: error.details[0].message,
             errorKey: error.details[0].context.key,
             code: 305,
-            msg: "Por favor revise su "+error.details[0].context.key
+            msg: `Por favor revise su ${error.details[0].context.key}`
         })
     }
-
     Auth.findByEmail(userInfo.mail, function(err, userExist){
         if(err){
-            return res.json({
-                msg: "Error, compruebe su conexion e intentelo de nuevo",
-                code: 400
-            })
+            return res.json(error400)
         }else if(!userExist){
             return res.json({
                 msg: "Correo incorrecto, intentelo de nuevo",
@@ -233,7 +228,7 @@ exports.authUser = (req, res) => {
         }
         Auth.authenticateUser(userExist.estado, userExist.password, userInfo.pass, function(verified, authenticated){
             if(verified && authenticated){
-                res.json({
+                return res.json({
                     code: 300,
                     msg: "Usuario autenticado exitosamente",
                     infoClient: {
@@ -243,18 +238,21 @@ exports.authUser = (req, res) => {
                     }
                 })
             }else if(!verified && authenticated){
-                res.json({
+                return res.json({
                     msg: "contraseña incorrecta, intentelo de nuevo",
                     code: 306
                 })
             }else if(!verified && !authenticated){
-                res.json({
+                return res.json({
                     msg: "Por favor verifique su cuenta para continuar",
                     code: 308
                 })
             }
+            return res.status(500).json(error403)
         })
+        return res.status(500).json(error403)
     })
+    return res.status(500).json(error403)
 }
 
 /**
@@ -296,15 +294,13 @@ exports.authUser = (req, res) => {
 *@apiErrorExample {json} JSON de respuesta para error de servidor
 * HTTP/1.1 500 Internal Server Error
 * {
-*    msg: "Error, compruebe su conexion e intentelo de nuevo",
+*    msg: "Ha ocurrido un error en base de datos",
 *    code: 400
 * }
 */
 
 exports.deleteUser = (req, res) => {
-
-    let email = req.body.mail
-
+    const email = req.body.mail
     if(!email){
     	console.log("faltaron datos");
     	return res.json({
@@ -316,10 +312,7 @@ exports.deleteUser = (req, res) => {
     Auth.deleteUser(email, function(err){
         if(err){
             console.log("Error eliminando")
-            return res.json({
-                msg: "Error, compruebe su conexion e intentelo de nuevo",
-                code: 400
-            })
+            return res.json(error400)
         }
         console.log("Cuenta eliminada satisfactoriamente")
         return res.json({
@@ -327,6 +320,7 @@ exports.deleteUser = (req, res) => {
             code: 311
         })
     })
+    return res.status(500).json(error403)
 }
 
 /**
@@ -368,46 +362,39 @@ exports.deleteUser = (req, res) => {
 *@apiErrorExample {json} JSON de respuesta para error de servidor
 * HTTP/1.1 500 Internal Server Error
 * {
-*    msg: "Error consultando",
+*    msg: "Ha ocurrido un error en base de datos",
 *    code: 400
 * }
 */
 
 exports.verifyUser = (req, res) => {
-
-	  let email = req.body.mail
-
-	  if(!email){
-    		return res.json({
+	const email = req.body.mail
+    if(!email){
+        return res.json({
             code: 305,
             msg: "Error, faltaron datos"
         })
     }
     Auth.findByEmail(Buffer.from(email, 'base64').toString('ascii'), function(err, userExist){
         if(err){
-            return res.send({
-                code: 400,
-                msg: "Error consultando"
-            })
+            return res.send(error400)
         }else if(!userExist){
             return res.send({
                 code: 307,
                 msg: "Correo incorrecto"
             })
         }
-        if(userExist.estado == false){
+        if(!userExist.estado){
             Auth.updateStateByEmail(userExist.correo, function(errorUpdate){
                 if(errorUpdate){
-                    return res.send({
-                        code: 400,
-                        msg: "Error consultando"
-                    })
+                    return res.send(error400)
                 }
                 return res.json({
                     code: 310,
                     msg: "estado actualizado correctamente"
                 })
             })
+            return res.status(500).json(error403)
         }else{
             return res.json({
                 code: 309,
@@ -415,6 +402,7 @@ exports.verifyUser = (req, res) => {
             })
         }
     })
+    return res.status(500).json(error403)
 }
 
 /**
@@ -456,12 +444,12 @@ exports.verifyUser = (req, res) => {
 *@apiErrorExample {json} JSON de respuesta para error de servidor
 * HTTP/1.1 500 Internal Server Error
 * {
-*    msg: "Error consultando, por favor intente de nuevo",
+*    msg: "Ha ocurrido un error en base de datos",
 *    code: 400
 * }
 */
 
-exports.forgotPasswordUser = (req, res) =>{
+exports.forgotPasswordUser = (req, res) => {
     var userInfo = req.body
   	if(!userInfo.mail){
         return res.status(400).json({
@@ -475,23 +463,20 @@ exports.forgotPasswordUser = (req, res) =>{
             errorDetail: error.details[0].message,
             errorKey: error.details[0].context.key,
             code: 306,
-            msg: "Por favor revise su "+error.details[0].context.key+" y vuelva a intentarlo"
+            msg: `Por favor revise su ${error.details[0].context.key}`
         })
     }
     Auth.findByEmail(userInfo.mail, function(err, userExist){
         if(err){
             console.log("Error consultando; "+err)
-            return res.status(500).json({
-                code: 400,
-                msg: "Error consultando, por favor intente de nuevo"
-            })
+            return res.status(500).json(error400)
         }else if(!userExist){
             return res.status(400).json({
                 code: 307,
                 msg: "Correo incorrecto o inexistente, compruebe la informacion"
             })
         }
-        let mailOptions = {
+        const mailOptions = {
             from: 'yourclocknoreply@gmail.com',
             to: userInfo.mail,
             subject: 'Cambio de contraseña en Your Clock'
@@ -514,7 +499,9 @@ exports.forgotPasswordUser = (req, res) =>{
                 msg: "Mensaje enviado exitosamente, verifique su correo para cambiar su contraseña"
             })
         })
+        return res.status(500).json(error403)
     })
+    return res.status(500).json(error403)
 }
 
 /**
@@ -558,13 +545,13 @@ exports.forgotPasswordUser = (req, res) =>{
 *@apiErrorExample {json} JSON de respuesta para error de servidor
 * HTTP/1.1 500 Internal Server Error
 * {
-*    msg: "Error consultando",
+*    msg: "Ha ocurrido un error en base de datos,
 *    code: 400
 * }
 */
 
 exports.recoveryPasswordUser = (req, res) => {
-  	var credentials = req.body
+  	const credentials = req.body
   	if(!credentials.id || !credentials.pass){
         return res.json({
             code: 305,
@@ -573,10 +560,7 @@ exports.recoveryPasswordUser = (req, res) => {
   	}
     Auth.updatePasswordById(credentials, function(err){
         if(err){
-            return res.json({
-                code: 400,
-                msg: "Error consultando"
-            })
+            return res.json(error400)
         }
         //console.log(common.getDateTime()+"----------------- CONTRASEÑA ACTUALIZADA -------------------")
         return res.json({
@@ -584,6 +568,7 @@ exports.recoveryPasswordUser = (req, res) => {
             msg: "Contraseña reestablecida correctamente"
         })
     })
+    return res.status(500).json(error403)
 }
 
 //*********************************** AUTENTICACION DE GOOGLE ************************************************
@@ -593,8 +578,8 @@ exports.getUrlGoogle = function(req, res){
 };
 
 exports.callbackGoogle = function(req, res) {
-    let correoEncoding = Buffer.from(req.user.correo).toString('base64')
-    let nombreEncoding = Buffer.from(req.user.nombre1).toString('base64')
-    let idEncoding = Buffer.from(req.user._id.toString()).toString('base64')
-    return res.send('<script>window.location.href="'+process.env.HOST_FRONT+'/#/usergoogle/'+idEncoding+'/'+correoEncoding+'/'+nombreEncoding+'";</script>');
+    const correoEncoding = Buffer.from(req.user.correo).toString('base64')
+    const nombreEncoding = Buffer.from(req.user.nombre1).toString('base64')
+    const idEncoding = Buffer.from(req.user._id.toString()).toString('base64')
+    return res.send(`<script>window.location.href="${process.env.HOST_FRONT}/#/usergoogle/${idEncoding}/${correoEncoding}/${nombreEncoding}";</script>`);
 }

@@ -30,6 +30,10 @@ const error400 = {
     code: 400,
     msg: "Ha ocurrido un error en base de datos"
 }
+const error305 = {
+	code: 305,
+	msg: "faltaron datos"
+}
 
 /**
 *@api{post}/login Peticion para registrar un usuario
@@ -98,7 +102,7 @@ exports.userLogin = (req, res) => {
         return res.status(400).json({
             errorDetail: error.details[0].message,
             errorKey: error.details[0].context.key,
-            code: 305,
+            code: 306,
             msg: `Por favor revise su ${error.details[0].context.key}`
         })
     }
@@ -213,7 +217,7 @@ exports.authUser = (req, res) => {
         return res.status(400).json({
             errorDetail: error.details[0].message,
             errorKey: error.details[0].context.key,
-            code: 305,
+            code: 306,
             msg: `Por favor revise su ${error.details[0].context.key}`
         })
     }
@@ -300,13 +304,10 @@ exports.authUser = (req, res) => {
 */
 
 exports.deleteUser = (req, res) => {
-    const email = req.body.mail
+    let email = req.body.mail
     if(!email){
     	console.log("faltaron datos");
-    	return res.json({
-    		msg: "Error, faltaron datos",
-    		code: 305
-    	})
+    	return res.json(error305)
     }
     email = Buffer.from(email, 'base64').toString('ascii')
     Auth.deleteUser(email, function(err){
@@ -370,10 +371,7 @@ exports.deleteUser = (req, res) => {
 exports.verifyUser = (req, res) => {
 	const email = req.body.mail
     if(!email){
-        return res.json({
-            code: 305,
-            msg: "Error, faltaron datos"
-        })
+        return res.json(error305)
     }
     Auth.findByEmail(Buffer.from(email, 'base64').toString('ascii'), function(err, userExist){
         if(err){
@@ -452,10 +450,7 @@ exports.verifyUser = (req, res) => {
 exports.forgotPasswordUser = (req, res) => {
     var userInfo = req.body
   	if(!userInfo.mail){
-        return res.status(400).json({
-            code: 305,
-            msg: "Error, faltaron datos"
-        })
+        return res.status(400).json(error305)
     }
     const {error} = schemaForgot.validate(userInfo);
     if (error) {
@@ -553,10 +548,7 @@ exports.forgotPasswordUser = (req, res) => {
 exports.recoveryPasswordUser = (req, res) => {
   	const credentials = req.body
   	if(!credentials.id || !credentials.pass){
-        return res.json({
-            code: 305,
-            msg: "Error, faltaron datos"
-        })
+        return res.json(error305)
   	}
     Auth.updatePasswordById(credentials, function(err){
         if(err){

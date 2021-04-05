@@ -9,7 +9,6 @@ const error403 = {
 	code: 403
 }
 
-
 /**
 *@api{post}/updatetoken Peticion para actualizar token del usuario
 *@apiVersion 0.0.1

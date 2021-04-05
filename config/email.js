@@ -3,7 +3,6 @@ const { google } = require("googleapis");
 const OAuth2 = google.auth.OAuth2;
 const nodemailer = require('nodemailer')
 
-
 var mailConfig;
 if(process.env.NODE_ENV === "production"){
 	const myOAuth2Client = new OAuth2(
@@ -29,7 +28,8 @@ if(process.env.NODE_ENV === "production"){
 	mailConfig = {
 		host: process.env.host_email,
 		port: process.env.port_email,
-		requireTLS: true,
+		requireTLS: false,
+		secure: false,
 		auth: {
 			user: process.env.ethereal_user,
 			pass: process.env.ethereal_pwd

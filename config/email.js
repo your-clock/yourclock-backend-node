@@ -15,6 +15,9 @@ if(process.env.NODE_ENV === "production"){
 	const myAccessToken = myOAuth2Client.getAccessToken()
 	mailConfig = {
 		service: "gmail",
+		secure: true,
+		requireTLS: true,
+		secured: true,
 		auth: {
 			type: "OAuth2",
 			user: process.env.USER_EMAIL, //your gmail account you used to set the project up in google cloud console"
@@ -28,6 +31,8 @@ if(process.env.NODE_ENV === "production"){
 	mailConfig = {
 		host: process.env.host_email,
 		port: process.env.port_email,
+		requireTLS: true,
+		secured: true,
 		auth: {
 			user: process.env.ethereal_user,
 			pass: process.env.ethereal_pwd

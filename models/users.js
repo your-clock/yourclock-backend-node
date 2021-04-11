@@ -110,7 +110,6 @@ schemaUsers.statics.sendEmailToUser = function sendEmailToUser(mailOptions, plan
             }
             return callback(null)
         })
-        return callback("Ha ocurrido un error inesperado")
     })
 }
 
@@ -208,7 +207,6 @@ schemaUsers.statics.findOneOrCreateByGoogle = function findOneOrCreate(condition
                 }
                 return callback(errorCreate, resultCreate)
             })
-            return callback("Ha ocurrido un error inesperado", null)
         }
     )
 }

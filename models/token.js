@@ -16,7 +16,6 @@ function verifyToken(uuid, callback){
             console.log(common.getDateTime()+":--------------------- TOKEN VALIDADO -----------------------\n")
             return callback(null, decoded)
         })
-        return callback("Ha ocurrido un error inesperado", null)
     })
 }
 
@@ -54,7 +53,6 @@ function updateToken(uuidReq, callback){
             }
             return callback(null, uuid)
         })
-        return callback("Ha ocurrido un error inesperado", null)
     })
 }
 

@@ -22,10 +22,6 @@ const schemaForgot = joi.object({
     mail: joi.string().min(6).required().email()
 })
 
-const error403 = {
-	msg: "Ha ocurrido un error interno en el servidor",
-	code: 403
-}
 const error400 = {
     code: 400,
     msg: "Ha ocurrido un error en base de datos"
@@ -144,11 +140,8 @@ exports.userLogin = (req, res) => {
                     code: 300
                 })
             })
-            return res.status(500).json(error403)
         })
-        return res.status(500).json(error403)
     })
-    return res.status(500).json(error403)
 }
 
 /**
@@ -252,11 +245,8 @@ exports.authUser = (req, res) => {
                     code: 308
                 })
             }
-            return res.status(500).json(error403)
         })
-        return res.status(500).json(error403)
     })
-    return res.status(500).json(error403)
 }
 
 /**
@@ -321,7 +311,6 @@ exports.deleteUser = (req, res) => {
             code: 311
         })
     })
-    return res.status(500).json(error403)
 }
 
 /**
@@ -392,7 +381,6 @@ exports.verifyUser = (req, res) => {
                     msg: "estado actualizado correctamente"
                 })
             })
-            return res.status(500).json(error403)
         }else{
             return res.json({
                 code: 309,
@@ -400,7 +388,6 @@ exports.verifyUser = (req, res) => {
             })
         }
     })
-    return res.status(500).json(error403)
 }
 
 /**
@@ -494,9 +481,7 @@ exports.forgotPasswordUser = (req, res) => {
                 msg: "Mensaje enviado exitosamente, verifique su correo para cambiar su contraseña"
             })
         })
-        return res.status(500).json(error403)
     })
-    return res.status(500).json(error403)
 }
 
 /**
@@ -560,7 +545,6 @@ exports.recoveryPasswordUser = (req, res) => {
             msg: "Contraseña reestablecida correctamente"
         })
     })
-    return res.status(500).json(error403)
 }
 
 //*********************************** AUTENTICACION DE GOOGLE ************************************************

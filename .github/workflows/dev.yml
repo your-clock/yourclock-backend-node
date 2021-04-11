@@ -28,4 +28,4 @@ jobs:
       - name: SonarCloud Verify results
         shell: bash
         run: |
-          curl --location --request GET 'https://sonarcloud.io/api/qualitygates/project_status?projectKey=your-clock_yourclock-backend-node&branch=dev'
+          if [ $(curl --location --request GET 'https://sonarcloud.io/api/qualitygates/project_status?projectKey=your-clock_yourclock-backend-node&branch=dev' | jq '.projectStatus.status') = 'ERROR' ]; then exit 1; else exit 0; fi

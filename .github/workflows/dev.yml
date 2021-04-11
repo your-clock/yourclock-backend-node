@@ -2,26 +2,30 @@ name: building-and-deployment-dev
 
 on:
   push:
-    branches: [ dev, david, feature/* ]
+    branches: [dev, david, feature/*]
   workflow_dispatch:
 
-env: 
-  project_name: "yourclock-backend"
+env:
+  project_name: "yourclock-backend-node"
   language: "javascript" #javascript, java, python
 
 jobs:
   sonar:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-      with:
-        fetch-depth: 0
-    - name: SonarCloud Scan
-      uses: SonarSource/sonarcloud-github-action@master
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-      with:
-        args: >
-          -Dsonar.branch.target=dev
-          -Dsonar.branch.name=dev
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args: >
+            -Dsonar.branch.target=dev
+            -Dsonar.branch.name=dev
+      - name: SonarCloud Verify results
+        shell: bash
+        run: |
+          curl -u {{ secrets.SONAR_TOKEN }}: https://sonarcloud.io/api/qualitygates/project_status?projectKey=your-clock_yourclock-backend-node&branch=dev

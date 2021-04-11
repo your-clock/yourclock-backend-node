@@ -7,7 +7,7 @@ var mailConfig;
 if(process.env.NODE_ENV === "production"){
 	const myOAuth2Client = new OAuth2(
 		process.env.ID_EMAIL,
-		process.env.SECRET_EMAIL,
+		process.env.SECRET_EMAIL
 	)
 	myOAuth2Client.setCredentials({
 		refresh_token: process.env.TOKEN_EMAIL
@@ -28,8 +28,6 @@ if(process.env.NODE_ENV === "production"){
 	mailConfig = {
 		host: process.env.host_email,
 		port: process.env.port_email,
-		requireTLS: false,
-		secure: false,
 		auth: {
 			user: process.env.ethereal_user,
 			pass: process.env.ethereal_pwd
@@ -37,6 +35,4 @@ if(process.env.NODE_ENV === "production"){
 	};
 }
 
-const transporter = nodemailer.createTransport(mailConfig);
-
-module.exports = transporter
+module.exports = nodemailer.createTransport(mailConfig);

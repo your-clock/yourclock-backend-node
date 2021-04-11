@@ -28,4 +28,4 @@ jobs:
       - name: SonarCloud Verify results
         shell: bash
         run: |
-          curl -u {{ secrets.SONAR_TOKEN }}: https://sonarcloud.io/api/qualitygates/project_status?projectKey=your-clock_yourclock-backend-node&branch=dev
+          curl -u ${{ secrets.SONAR_TOKEN }}: https://sonarcloud.io/api/qualitygates/project_status?projectKey=your-clock_yourclock-backend-node&branch=dev

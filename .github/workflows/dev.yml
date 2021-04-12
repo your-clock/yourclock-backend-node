@@ -29,4 +29,4 @@ jobs:
         shell: bash
         run: |
           state_sonar=$(curl --location --request GET 'https://sonarcloud.io/api/qualitygates/project_status?projectKey=your-clock_yourclock-backend-node&branch=dev' | jq '.projectStatus.status')
-          if [ "$state_sonar" = "ERROR" ]; then echo "fail"; else echo "ok"; fi
+          if [ "$state_sonar" != "\"OK\"" ]; then echo "Quality Gate with state: $state_sonar"; exit 1; else echo "Quality Gate OK"; exit 0; fi

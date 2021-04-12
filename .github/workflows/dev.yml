@@ -8,6 +8,7 @@ on:
 env:
   project_name: "yourclock-backend-node"
   language: "javascript" #javascript, java, python
+  branch_default: "dev"
 
 jobs:
   sonar:
@@ -23,10 +24,10 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
           args: >
-            -Dsonar.branch.target=dev
-            -Dsonar.branch.name=dev
+            -Dsonar.branch.target=${{ env.branch_default }}
+            -Dsonar.branch.name=${{ env.branch_default }}
       - name: SonarCloud Verify results
         shell: bash
         run: |
-          state_sonar=$(curl --location --request GET 'https://sonarcloud.io/api/qualitygates/project_status?projectKey=your-clock_yourclock-backend-node&branch=dev' | jq '.projectStatus.status')
+          state_sonar=$(curl --location --request GET 'https://sonarcloud.io/api/qualitygates/project_status?projectKey=your-clock_${{ env.project_name }}&branch=${{ env.branch_default }}' | jq '.projectStatus.status')
           if [ "$state_sonar" != "\"OK\"" ]; then echo "Quality Gate with state: $state_sonar"; exit 1; else echo "Quality Gate OK"; exit 0; fi

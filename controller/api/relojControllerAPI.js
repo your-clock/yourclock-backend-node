@@ -23,11 +23,11 @@ exports.setAlarm = (req, res) => {
 	if(!time){
 		res.status(400).json(error305)
 	}else{
-		relojModel.sendAlarm(time, (err, res) => {
+		relojModel.sendAlarm(time, (err, result) => {
 			if(err){
 				return res.status(400).send(err)
 			}else{
-				return res.status(200).send(res)
+				return res.status(200).send(result)
 			}
 		})
 	}

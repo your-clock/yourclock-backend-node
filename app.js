@@ -1,4 +1,3 @@
-require('dotenv').config();
 const passport = require('./config/passport');
 const express = require('express');
 const morgan = require('morgan');
@@ -6,27 +5,26 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const path = require('path');
 const app = express();
-const common = require('./config/common-functions')
-const router = express.Router();
 const http = require('http').createServer(app)
-const socketio = require('socket.io')(http)
-const axios = require('axios')
+const common = require('./config/common-functions');
 const cookieParser = require('cookie-parser');
 const session = require('express-session');
 const mongoDBStore = require('connect-mongodb-session')(session);
 const assert = require('assert').strict;
+require('dotenv').config();
 require('./config/redis-config')
 
 app.use(morgan('tiny'));
-app.use(cors({origin: process.env.HOST_FRONT}));
+app.use(cors({
+	origin: process.env.HOST_FRONT,
+	credentials: true
+}));
 app.use(express.json());
 app.use(cookieParser());
 app.use(passport.initialize());
 app.use(passport.session());
 app.use(express.urlencoded({ extended: true }))
 app.use(express.static(path.join(__dirname, 'views')));
-app.set('puerto', process.env.PORT || 3000);
-app.use('/api', router)
 app.use('/privacy_policy', function(req, res){
 	res.sendFile('views/privacy_policy.html');
 });
@@ -56,10 +54,6 @@ app.use(session({
 	secret: process.env.SECRET_SESSION
 }));
 
-http.listen(app.get('puerto'), function () {
-  console.log(`${common.getDateTime()}: App listening on port: ${app.get('puerto')} In environment: ${process.env.NODE_ENV}`);
-});
-
 mongoose.connect(process.env.MONGO_URI, {useNewUrlParser: true, useUnifiedTopology: true}, function(err){
 	if(err){
 		console.log(`${common.getDateTime()}: Error conectando a Atlas: ${err}`)
@@ -68,64 +62,12 @@ mongoose.connect(process.env.MONGO_URI, {useNewUrlParser: true, useUnifiedTopolo
 	}
 })
 
-var datos = {
-	temperaturaAmb: 0,
-	temperaturaLocal: 0
-}
-
-socketio.on("connection", socket => {
-	console.log(`${common.getDateTime()}: conectado por socket`)
-})
-
 const userRoutes = require('./routes/Users')
 const tokenRoutes = require('./routes/token')
+const relojRoutes = require('./routes/reloj')
 
 app.use('/api/user', userRoutes);
 app.use('/api/token', tokenRoutes);
+app.use('/api/reloj', relojRoutes);
 
-router.post('/datos', (req, res) => {
-	const temperaturaAmb = req.body.temp_amb
-	const temperaturaLocal = req.body.temp_local
-	if(!temperaturaAmb || !temperaturaLocal){
-		res.status(400).json("faltaron datos")
-	}else{
-		res.send("OK")
-		datos.temperaturaAmb = temperaturaAmb
-		datos.temperaturaLocal = temperaturaLocal
-		console.log(`Los datos a enviar por socket son: ${datos}`)
-		socketio.emit('datos', datos)
-	}
-})
-
-router.post('/alarma', (req, res) => {
-	const time = req.body.time
-	if(!time){
-		res.send("faltaron datos")
-	}else{
-		const hora = time.substr(0,2);
-		const min = time.substr(3,4);
-		const alarma = hora+min
-		console.log(`La alarma a configurar es: ${alarma}`);
-		var config = {
-			method: 'post',
-			url: process.env.URL_THINGERIO,
-			headers: {
-				'Accept': 'application/json, text/plain, */*',
-				'Content-Type': 'application/json;charset=UTF-8',
-				'Authorization': process.env.TOKEN_THINGERIO
-			},
-			data: {
-				"in" : alarma
-			}
-		};
-		axios(config)
-		.then(function (response) {
-			console.log(JSON.stringify(response.data));
-			res.send("OK")
-		})
-		.catch(function (error) {
-			console.log(error);
-			res.send(error)
-		});
-	}
-})
+module.exports = http

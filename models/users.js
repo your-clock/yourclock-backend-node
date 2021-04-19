@@ -115,7 +115,7 @@ schemaUsers.statics.sendEmailToUser = function sendEmailToUser(mailOptions, plan
 
 schemaUsers.statics.authenticateUser = function authenticateUser(state, passwordDB, passwordUser, callback){
     if(state){
-        const passwordHASH = crypto.HmacSHA1(passwordUser, process.env.KEY_SHA1)
+        const passwordHASH = crypto.HmacSHA1(passwordUser, process.env.KEY_SHA1).toString(crypto.enc.Hex)
         if(passwordHASH === passwordDB){
             return callback(true, true)
         }

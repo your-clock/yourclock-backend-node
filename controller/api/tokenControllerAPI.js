@@ -56,21 +56,23 @@ exports.updateToken = (req, res) => {
 	const uuidReq = req.body.uuid
 
 	if(!uuidReq){
-		return res.status(400).json(error305)
+		res.status(400).json(error305)
+	}else{
+		token.updateToken(uuidReq, function (err, uuid) {
+			if (err) {
+				res.status(500).json({
+					msg: "Ha ocurrido un error al generar el token, intentelo de nuevo",
+					code: 401
+				});
+			}else{
+				res.status(200).json({
+					msg: "Token enviado correctamente",
+					code: 300,
+					uuid: uuid
+				});
+			}
+		})
 	}
-	token.updateToken(uuidReq, function (err, uuid) {
-		if (err) {
-			return res.status(500).json({
-				msg: "Ha ocurrido un error al generar el token, intentelo de nuevo",
-				code: 401
-			});
-		}
-		return res.status(200).json({
-			msg: "Token enviado correctamente",
-			code: 300,
-			uuid: uuid
-		});
-	})
 }
 
 /**
@@ -108,14 +110,16 @@ exports.verifyToken =  (req, res) => {
 	const uuidReq = req.body.uuid
 
 	if(!uuidReq){
-		return res.status(400).json(error305)
+		res.status(400).json(error305)
+	}else{
+		token.verifyToken(uuidReq, function(err) {
+			if(err){
+				res.status(200).send(false)
+			}else{
+				res.status(200).send(true)
+			}
+		})
 	}
-	token.verifyToken(uuidReq, function(err) {
-		if(err){
-			return res.status(200).send(false)
-		}
-		return res.status(200).send(true)
-	})
 }
 
 /**
@@ -173,21 +177,23 @@ exports.createToken = (req, res) => {
 	const tokenData = req.body.tokenData
 
 	if(!tokenData){
-		return res.status(400).json(error305)
+		res.status(400).json(error305)
+	}else{
+		token.createToken(tokenData, function(err, uuid) {
+			if (err) {
+				res.status(500).json({
+					msg: "Ha ocurrido un error al generar el token, intentelo de nuevo",
+					code: 401
+				});
+			}else{
+				res.status(201).json({
+					msg: "Token creado correctamente",
+					code: 300,
+					uuid: uuid
+				});
+			}
+		})
 	}
-	token.createToken(tokenData, function(err, uuid) {
-		if (err) {
-			return res.status(500).json({
-				msg: "Ha ocurrido un error al generar el token, intentelo de nuevo",
-				code: 401
-			});
-		}
-		return res.status(201).json({
-			msg: "Token creado correctamente",
-			code: 300,
-			uuid: uuid
-		});
-	})
 }
 
 /**
@@ -237,18 +243,20 @@ exports.createToken = (req, res) => {
 exports.deleteToken = (req, res) => {
 	const uuid = req.body.uuid
 	if(!uuid){
-		return res.status(400).json(error305)
+		res.status(400).json(error305)
+	}else{
+		token.deleteToken(uuid, function (err, result) {
+			if(err){
+				res.status(500).json({
+					msg: "Ha ocurrido un error al eliminar el token, intentelo de nuevo",
+					code: 402
+				});
+			}else{
+				res.status(200).json({
+					code: 301,
+					msg: "Token eliminado exitosamente, ID: "+result
+			   })
+			}
+		})
 	}
-	token.deleteToken(uuid, function (err, result) {
-		if(err){
-			return res.status(500).json({
-				msg: "Ha ocurrido un error al eliminar el token, intentelo de nuevo",
-				code: 402
-			});
-		}
-		return res.status(200).json({
-			code: 301,
-			msg: "Token eliminado exitosamente, ID: "+result
-	   })
-	})
 }

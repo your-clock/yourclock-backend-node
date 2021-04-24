@@ -89,7 +89,7 @@ const error305 = {
 
 exports.userLogin = async (req, res) => {
     try {
-        await Auth.validateBodyLogin(req.body, schemaLogin);
+        await Auth.validateBody(req.body, schemaLogin);
         await Auth.findByEmail(req.body.mail, false);
         var mailOptions = {
             from: 'no-reply@yourclock-app.com',
@@ -173,50 +173,23 @@ exports.userLogin = async (req, res) => {
 * }
 */
 
-exports.authUser = (req, res) => {
-	const userInfo = req.body
-	const {error} = schemaAuth.validate(userInfo);
-    if (error) {
-        return res.status(400).json({
-            errorDetail: error.details[0].message,
-            errorKey: error.details[0].context.key,
-            code: 306,
-            msg: `Por favor revise su ${error.details[0].context.key}`
-        })
-    }
-    Auth.findByEmail(userInfo.mail, function(err, userExist){
-        if(err){
-            return res.json(error400)
-        }else if(!userExist){
-            return res.json({
-                msg: "Correo incorrecto, intentelo de nuevo",
-                code: 307
-            })
-        }
-        Auth.authenticateUser(userExist.estado, userExist.password, userInfo.pass, function(verified, authenticated){
-            if(verified && authenticated){
-                return res.json({
-                    code: 300,
-                    msg: "Usuario autenticado exitosamente",
-                    infoClient: {
-                        nombre: Buffer.from(userExist.nombre1).toString('base64'),
-                        correo: Buffer.from(userExist.correo).toString('base64'),
-                        id: Buffer.from(userExist._id.toString()).toString('base64')
-                    }
-                })
-            }else if(!verified && authenticated){
-                return res.json({
-                    msg: "contraseña incorrecta, intentelo de nuevo",
-                    code: 306
-                })
-            }else if(!verified && !authenticated){
-                return res.json({
-                    msg: "Por favor verifique su cuenta para continuar",
-                    code: 308
-                })
+exports.authUser = async (req, res) => {
+    try {
+        await Auth.validateBody(req.body, schemaAuth);
+        const result = await Auth.findByEmail(req.body.mail, true);
+        await Auth.authenticateUser(result.estado, result.password, req.body.pass);
+        return res.status(200).json({
+            code: 300,
+            msg: "Usuario autenticado exitosamente",
+            infoClient: {
+                nombre: Buffer.from(result.nombre1).toString('base64'),
+                correo: Buffer.from(result.correo).toString('base64'),
+                id: Buffer.from(result._id.toString()).toString('base64')
             }
         })
-    })
+    } catch (error) {
+        return res.status(error.statusCode || 500).send(error.body || error.toString())
+    }
 }
 
 /**

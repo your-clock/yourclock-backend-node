@@ -4,7 +4,6 @@ const crypto = require('crypto-js');
 const EmailTemplates = require('swig-email-templates');
 const transporter = require('../config/email')
 const Schema = mongoose.Schema;
-const common = require('../config/common-functions')
 
 const schemaUsers = new Schema({
 	correo: {
@@ -67,7 +66,7 @@ const error400 = {
     msg: "Ha ocurrido un error en base de datos"
 }
 
-schemaUsers.statics.validateBodyLogin = function validateBodyLogin(body, schema) {
+schemaUsers.statics.validateBody = function validateBody(body, schema) {
     const {error} = schema.validate(body);
     if(error){
         const err = new Error('Error al validar el body')
@@ -131,8 +130,8 @@ schemaUsers.statics.updatePasswordById = function updatePasswordByEmail(credenti
 
 schemaUsers.statics.sendEmailToUser = async function sendEmailToUser(mailOptions, plantilla, datos){
     const templates = new EmailTemplates();
-	templates.render(plantilla, datos, function(err, html) {
-		if(err){
+	templates.render(plantilla, datos, function(error, html) {
+		if(error){
             const err = new Error('Error con el template')
 			err.body = {
                 msg: "Error al generar plantilla de correo",
@@ -144,8 +143,8 @@ schemaUsers.statics.sendEmailToUser = async function sendEmailToUser(mailOptions
 		}
 		mailOptions.html = html
 	})
-    await transporter.sendMail(mailOptions, function(error, info){
-		if(error){
+    await transporter.sendMail(mailOptions, function(errorSend, infoSend){
+		if(errorSend){
 			transporter.close();
             const err = new Error('Error al enviar el email')
             err.body = {
@@ -160,15 +159,27 @@ schemaUsers.statics.sendEmailToUser = async function sendEmailToUser(mailOptions
 	})
 }
 
-schemaUsers.statics.authenticateUser = function authenticateUser(state, passwordDB, passwordUser, callback){
-    if(state){
-        const passwordHASH = crypto.HmacSHA1(passwordUser, process.env.KEY_SHA1).toString(crypto.enc.Hex)
-        if(passwordHASH === passwordDB){
-            return callback(true, true)
+schemaUsers.statics.authenticateUser = function authenticateUser(state, passwordDB, passwordUser){
+    if(!state){
+        const err = new Error('Usuario no verificado')
+        err.body = {
+            msg: "Por favor verifique su cuenta para continuar",
+            code: 308
         }
-        return callback(false, true)
+        err.statusCode = 400
+        throw err;
+    }else{
+        const passwordHASH = crypto.HmacSHA1(passwordUser, process.env.KEY_SHA1).toString(crypto.enc.Hex)
+        if(passwordHASH !== passwordDB){
+            const err = new Error('Usuario no autenticado')
+            err.body = {
+                msg: "contraseña incorrecta, intentelo de nuevo",
+                code: 306
+            }
+            err.statusCode = 400
+            throw err;
+        }
     }
-    return callback(false, false)
 }
 
 schemaUsers.statics.createUser = function createUser(userInfo){

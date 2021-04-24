@@ -70,15 +70,15 @@ const error400 = {
 schemaUsers.statics.validateBodyLogin = function validateBodyLogin(body, schema) {
     const {error} = schema.validate(body);
     if(error){
-        throw {
-            body: {
-                errorDetail: error.details[0].message,
-                errorKey: error.details[0].context.key,
-                code: 306,
-                msg: `Por favor revise su ${error.details[0].context.key}`
-            },
-            statusCode: 400
+        let err = new Error('Error al validar el body')
+        err.body = {
+            errorDetail: error.details[0].message,
+            errorKey: error.details[0].context.key,
+            code: 306,
+            msg: `Por favor revise su ${error.details[0].context.key}`
         }
+        err.statusCode = 400
+        throw err;
     }
 }
 

@@ -60,25 +60,56 @@ const schemaUsers = new Schema({
     }
 })
 
-schemaUsers.statics.validateBodyLogin = function validateBodyLogin(body, schema, callback) {
+const error400 = {
+    code: 400,
+    msg: "Ha ocurrido un error en base de datos"
+}
+
+schemaUsers.statics.validateBodyLogin = function validateBodyLogin(body, schema) {
     const {error} = schema.validate(body);
     if(error){
-        return callback(error)
-    }else{
-        return callback(false)
+        throw {
+            body: {
+                errorDetail: error.details[0].message,
+                errorKey: error.details[0].context.key,
+                code: 306,
+                msg: `Por favor revise su ${error.details[0].context.key}`
+            },
+            statusCode: 400
+        }
     }
 }
 
-schemaUsers.statics.findByEmail = function findByEmail(email, callback){
-    const self = this;
-    self.find({correo: email}, function(err, result){
+schemaUsers.statics.findByEmail = function findByEmail(email, userExist, callback){
+    this.find({correo: email}, function(err, result){
         if(err){
-            return callback(err, null)
+            throw {
+                body: error400,
+                statusCode: 500
+            }
         }
-        if(result === ""){
-            return callback(null, null)
+        if(userExist){
+            if(result === ""){
+                throw {
+                    body: {
+                        msg: "Correo no existente, verifique la informacion",
+                        code: 304
+                    },
+                    statusCode: 400
+                }
+            }
+            return callback(null, result[0])
+        }else{
+            if(result !== ""){
+                throw {
+                    body: {
+                        msg: "Usuario ya existente, verifique la informacion",
+                        code: 304
+                    },
+                    statusCode: 400
+                }
+            }
         }
-        return callback(null, result[0])
     })
 }
 

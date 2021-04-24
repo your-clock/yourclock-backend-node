@@ -1,6 +1,6 @@
 const Auth = require('../../models/users');
 const joi = require('joi')
-const path = require('path')
+const path = require('path');
 
 const schemaLogin = joi.object({
     name1: joi.string().min(1).required(),
@@ -22,10 +22,6 @@ const schemaForgot = joi.object({
     mail: joi.string().min(6).required().email()
 })
 
-const error400 = {
-    code: 400,
-    msg: "Ha ocurrido un error en base de datos"
-}
 const error305 = {
 	code: 305,
 	msg: "faltaron datos"
@@ -92,7 +88,14 @@ const error305 = {
 */
 
 exports.userLogin = (req, res) => {
-    Auth.validateBodyLogin(req.body, schemaLogin, function(err) {
+    try {
+        Auth.validateBodyLogin(req.body, schemaLogin);
+        Auth.findByEmail(req.body.email, false);
+        res.send("OK")
+    }catch(error){
+        res.status(error.statusCode).send(error.body)
+    }
+    /*await Auth.validateBodyLogin(req.body, schemaLogin, function(err) {
         if(err){
             return res.status(400).json({
                 errorDetail: err.details[0].message,
@@ -102,7 +105,7 @@ exports.userLogin = (req, res) => {
             })
         }
     })
-    Auth.findByEmail(req.body.email, (errFind, userExist) => {
+    await Auth.findByEmail(req.body.email, function(errFind, userExist) {
         if(errFind){
             return res.status(500).json(error400)
         }else if(userExist){
@@ -124,7 +127,7 @@ exports.userLogin = (req, res) => {
         email: Buffer.from(req.body.mail).toString('base64'),
         base_url: process.env.HOST_FRONT
     }
-    Auth.sendEmailToUser(mailOptions, plantilla, datos, (errSend) => {
+    await Auth.sendEmailToUser(mailOptions, plantilla, datos, function(errSend) {
         if(errSend){
             return res.status(500).json({
                 msg: "Error al enviar el correo, verifique su conexion, si el error persiste, intente mas tarde",
@@ -133,7 +136,7 @@ exports.userLogin = (req, res) => {
             })
         }
     })
-    Auth.createUser(req.body, function(errorCreate){
+    await Auth.createUser(req.body, function(errorCreate){
         if(errorCreate){
             return res.status(500).json(error400)
         }else{
@@ -142,7 +145,7 @@ exports.userLogin = (req, res) => {
                 code: 300
             })
         }
-    })
+    })*/
 }
 
 /**

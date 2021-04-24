@@ -92,18 +92,18 @@ const error305 = {
 */
 
 exports.userLogin = (req, res) => {
-	const userInfo = req.body
-    const {error} = schemaLogin.validate(userInfo);
-    if (error) {
-        return res.status(400).json({
-            errorDetail: error.details[0].message,
-            errorKey: error.details[0].context.key,
-            code: 306,
-            msg: `Por favor revise su ${error.details[0].context.key}`
-        })
-    }
-    Auth.findByEmail(userInfo.mail, function(errorFind, userExist){
-        if(errorFind){
+    Auth.validateBodyLogin(req.body, schemaLogin, function(err) {
+        if(err){
+            return res.status(400).json({
+                errorDetail: err.details[0].message,
+                errorKey: err.details[0].context.key,
+                code: 306,
+                msg: `Por favor revise su ${err.details[0].context.key}`
+            })
+        }
+    })
+    Auth.findByEmail(req.body.email, (errFind, userExist) => {
+        if(errFind){
             return res.status(500).json(error400)
         }else if(userExist){
             return res.status(200).json({
@@ -111,36 +111,37 @@ exports.userLogin = (req, res) => {
                 code: 304
             })
         }
-        var mailOptions = {
-            from: 'no-reply@yourclock-app.com',
-            to: userInfo.mail,
-            subject: 'Verificacion cuenta en Your Clock'
-        }
-        var plantilla = path.join(__dirname, '../..', 'views/verification.html')
-        var datos = {
-            nombre: userInfo.name1,
-            apellido: userInfo.lastName1,
-            email: Buffer.from(userInfo.mail).toString('base64'),
-            base_url: process.env.HOST_FRONT
-        }
-        Auth.sendEmailToUser(mailOptions, plantilla, datos, function(errorSend){
-            if(errorSend){
-                return res.status(500).json({
-                    msg: "Error al enviar el correo, verifique su conexion, si el error persiste, intente mas tarde",
-                    code: 402,
-                    info: error
-                })
-            }
-            Auth.createUser(userInfo, function(errorCreate){
-                if(errorCreate){
-                    return res.status(500).json(error400)
-                }
-                return res.status(201).json({
-                    msg: "Usuario registrado correctamente, verifique su correo para autenticar su cuenta",
-                    code: 300
-                })
+    })
+    var mailOptions = {
+        from: 'no-reply@yourclock-app.com',
+        to: req.body.mail,
+        subject: 'Verificacion cuenta en Your Clock'
+    }
+    var plantilla = path.join(__dirname, '../..', 'views/verification.html')
+    var datos = {
+        nombre: req.body.name1,
+        apellido: req.body.lastName1,
+        email: Buffer.from(req.body.mail).toString('base64'),
+        base_url: process.env.HOST_FRONT
+    }
+    Auth.sendEmailToUser(mailOptions, plantilla, datos, (errSend) => {
+        if(errSend){
+            return res.status(500).json({
+                msg: "Error al enviar el correo, verifique su conexion, si el error persiste, intente mas tarde",
+                code: 402,
+                info: errSend
             })
-        })
+        }
+    })
+    Auth.createUser(req.body, function(errorCreate){
+        if(errorCreate){
+            return res.status(500).json(error400)
+        }else{
+            return res.status(201).json({
+                msg: "Usuario registrado correctamente, verifique su correo para autenticar su cuenta",
+                code: 300
+            })
+        }
     })
 }
 
@@ -360,34 +361,35 @@ exports.deleteUser = (req, res) => {
 exports.verifyUser = (req, res) => {
 	const email = req.body.mail
     if(!email){
-        return res.json(error305)
-    }
-    Auth.findByEmail(Buffer.from(email, 'base64').toString('ascii'), function(err, userExist){
-        if(err){
-            return res.send(error400)
-        }else if(!userExist){
-            return res.send({
-                code: 307,
-                msg: "Correo incorrecto"
-            })
-        }
-        if(!userExist.estado){
-            Auth.updateStateByEmail(userExist.correo, function(errorUpdate){
-                if(errorUpdate){
-                    return res.send(error400)
-                }
-                return res.json({
-                    code: 310,
-                    msg: "estado actualizado correctamente"
+        res.json(error305)
+    }else{
+        Auth.findByEmail(Buffer.from(email, 'base64').toString('ascii'), function(err, userExist){
+            if(err){
+                res.send(error400)
+            }else if(!userExist){
+                res.send({
+                    code: 307,
+                    msg: "Correo incorrecto"
                 })
-            })
-        }else{
-            return res.json({
-                code: 309,
-                msg: "verificacion ya realizada"
-            })
-        }
-    })
+            }
+            if(!userExist.estado){
+                Auth.updateStateByEmail(userExist.correo, function(errorUpdate){
+                    if(errorUpdate){
+                        res.send(error400)
+                    }
+                    res.json({
+                        code: 310,
+                        msg: "estado actualizado correctamente"
+                    })
+                })
+            }else{
+                res.json({
+                    code: 309,
+                    msg: "verificacion ya realizada"
+                })
+            }
+        })
+    } 
 }
 
 /**

@@ -60,6 +60,15 @@ const schemaUsers = new Schema({
     }
 })
 
+schemaUsers.statics.validateBodyLogin = function validateBodyLogin(body, schema, callback) {
+    const {error} = schema.validate(body);
+    if(error){
+        return callback(error)
+    }else{
+        return callback(false)
+    }
+}
+
 schemaUsers.statics.findByEmail = function findByEmail(email, callback){
     const self = this;
     self.find({correo: email}, function(err, result){

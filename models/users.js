@@ -70,7 +70,7 @@ const error400 = {
 schemaUsers.statics.validateBodyLogin = function validateBodyLogin(body, schema) {
     const {error} = schema.validate(body);
     if(error){
-        let err = new Error('Error al validar el body')
+        const err = new Error('Error al validar el body')
         err.body = {
             errorDetail: error.details[0].message,
             errorKey: error.details[0].context.key,
@@ -85,23 +85,23 @@ schemaUsers.statics.validateBodyLogin = function validateBodyLogin(body, schema)
 schemaUsers.statics.findByEmail = async function(email, needUserExist){
     const result = await this.find({correo: email})
     if(needUserExist && !result[0]){
-        throw {
-            body: {
-                msg: "Correo no existente, verifique la informacion",
-                code: 304
-            },
-            statusCode: 400
+        const err = new Error('Correo no existente')
+        err.body = {
+            msg: "Correo no existente, verifique la informacion",
+            code: 304
         }
+        err.statusCode = 400
+        throw err
     }else if(needUserExist && result[0]){
         return result[0]
     }else if(!needUserExist && result[0]){
-        throw {
-            body: {
-                msg: "Usuario ya existente, verifique la informacion",
-                code: 304
-            },
-            statusCode: 400
+        const err = new Error('El correo ya existe')
+        err.body = {
+            msg: "Usuario ya existente, verifique la informacion",
+            code: 304
         }
+        err.statusCode = 400
+        throw err;
     }
 }
 
@@ -133,28 +133,28 @@ schemaUsers.statics.sendEmailToUser = async function sendEmailToUser(mailOptions
     const templates = new EmailTemplates();
 	templates.render(plantilla, datos, function(err, html) {
 		if(err){
-			throw {
-                body: {
-                    msg: "Error al generar plantilla de correo",
-                    info: err,
-                    code: 304
-                },
-                statusCode: 500
+            const err = new Error('Error con el template')
+			err.body = {
+                msg: "Error al generar plantilla de correo",
+                info: err,
+                code: 304
             }
+            err.statusCode = 500
+            throw err
 		}
 		mailOptions.html = html
 	})
     await transporter.sendMail(mailOptions, function(error, info){
 		if(error){
 			transporter.close();
-            throw {
-                body: {
-                    msg: "Error al enviar el email, intenta mas tarde",
-                    code: 304,
-                    info: error
-                },
-                statusCode: 500
+            const err = new Error('Error al enviar el email')
+            err.body = {
+                msg: "Error al enviar el email, intenta mas tarde",
+                code: 304,
+                info: error
             }
+            err.statusCode = 500
+            throw err;
 		}
 		transporter.close();
 	})
@@ -186,14 +186,15 @@ schemaUsers.statics.createUser = function createUser(userInfo){
         fecha: new Date()
     }
     const myData = new self(payload)
-    myData.save().catch(err => {
-        throw {
-            body: {
-                msg: "Error al crear el usuario en base de datos",
-                code: 304,
-                info: err
-            }
+    myData.save().catch(error => {
+        const err = new Error('Error al crear el usuario')
+        err.body = {
+            msg: "Error al crear el usuario en base de datos",
+            code: 304,
+            info: error
         }
+        err.statusCode = 500
+        throw err;
     })
 }
 

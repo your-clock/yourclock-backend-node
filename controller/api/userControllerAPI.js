@@ -87,65 +87,31 @@ const error305 = {
 * }
 */
 
-exports.userLogin = (req, res) => {
+exports.userLogin = async (req, res) => {
     try {
-        Auth.validateBodyLogin(req.body, schemaLogin);
-        Auth.findByEmail(req.body.email, false);
-        res.send("OK")
+        await Auth.validateBodyLogin(req.body, schemaLogin);
+        await Auth.findByEmail(req.body.mail, false);
+        var mailOptions = {
+            from: 'no-reply@yourclock-app.com',
+            to: req.body.mail,
+            subject: 'Verificacion cuenta en Your Clock'
+        }
+        var plantilla = path.join(__dirname, '../..', 'views/verification.html')
+        var datos = {
+            nombre: req.body.name1,
+            apellido: req.body.lastName1,
+            email: Buffer.from(req.body.mail).toString('base64'),
+            base_url: process.env.HOST_FRONT
+        }
+        await Auth.sendEmailToUser(mailOptions, plantilla, datos);
+        await Auth.createUser(req.body);
+        return res.status(201).json({
+            msg: "Usuario registrado correctamente, verifique su correo para autenticar su cuenta",
+            code: 300
+        })
     }catch(error){
-        res.status(error.statusCode).send(error.body)
+        return res.status(error.statusCode || 500).send(error.body || error.toString())
     }
-    /*await Auth.validateBodyLogin(req.body, schemaLogin, function(err) {
-        if(err){
-            return res.status(400).json({
-                errorDetail: err.details[0].message,
-                errorKey: err.details[0].context.key,
-                code: 306,
-                msg: `Por favor revise su ${err.details[0].context.key}`
-            })
-        }
-    })
-    await Auth.findByEmail(req.body.email, function(errFind, userExist) {
-        if(errFind){
-            return res.status(500).json(error400)
-        }else if(userExist){
-            return res.status(200).json({
-                msg: "Usuario ya existente, intentelo de nuevo",
-                code: 304
-            })
-        }
-    })
-    var mailOptions = {
-        from: 'no-reply@yourclock-app.com',
-        to: req.body.mail,
-        subject: 'Verificacion cuenta en Your Clock'
-    }
-    var plantilla = path.join(__dirname, '../..', 'views/verification.html')
-    var datos = {
-        nombre: req.body.name1,
-        apellido: req.body.lastName1,
-        email: Buffer.from(req.body.mail).toString('base64'),
-        base_url: process.env.HOST_FRONT
-    }
-    await Auth.sendEmailToUser(mailOptions, plantilla, datos, function(errSend) {
-        if(errSend){
-            return res.status(500).json({
-                msg: "Error al enviar el correo, verifique su conexion, si el error persiste, intente mas tarde",
-                code: 402,
-                info: errSend
-            })
-        }
-    })
-    await Auth.createUser(req.body, function(errorCreate){
-        if(errorCreate){
-            return res.status(500).json(error400)
-        }else{
-            return res.status(201).json({
-                msg: "Usuario registrado correctamente, verifique su correo para autenticar su cuenta",
-                code: 300
-            })
-        }
-    })*/
 }
 
 /**

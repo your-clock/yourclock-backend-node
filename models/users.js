@@ -1,6 +1,8 @@
 import mongoose from 'mongoose';
 import { google } from 'googleapis';
-const crypto = require('crypto-js')
+const crypto = require('crypto-js');
+const EmailTemplates = require('swig-email-templates');
+const transporter = require('../config/email')
 const Schema = mongoose.Schema;
 const common = require('../config/common-functions')
 
@@ -80,37 +82,27 @@ schemaUsers.statics.validateBodyLogin = function validateBodyLogin(body, schema)
     }
 }
 
-schemaUsers.statics.findByEmail = function findByEmail(email, userExist, callback){
-    this.find({correo: email}, function(err, result){
-        if(err){
-            throw {
-                body: error400,
-                statusCode: 500
-            }
+schemaUsers.statics.findByEmail = async function(email, needUserExist){
+    const result = await this.find({correo: email})
+    if(needUserExist && !result[0]){
+        throw {
+            body: {
+                msg: "Correo no existente, verifique la informacion",
+                code: 304
+            },
+            statusCode: 400
         }
-        if(userExist){
-            if(result === ""){
-                throw {
-                    body: {
-                        msg: "Correo no existente, verifique la informacion",
-                        code: 304
-                    },
-                    statusCode: 400
-                }
-            }
-            return callback(null, result[0])
-        }else{
-            if(result !== ""){
-                throw {
-                    body: {
-                        msg: "Usuario ya existente, verifique la informacion",
-                        code: 304
-                    },
-                    statusCode: 400
-                }
-            }
+    }else if(needUserExist && result[0]){
+        return result[0]
+    }else if(!needUserExist && result[0]){
+        throw {
+            body: {
+                msg: "Usuario ya existente, verifique la informacion",
+                code: 304
+            },
+            statusCode: 400
         }
-    })
+    }
 }
 
 schemaUsers.statics.updateStateByEmail = function updateStateByEmail(email, callback){
@@ -137,20 +129,35 @@ schemaUsers.statics.updatePasswordById = function updatePasswordByEmail(credenti
     })
 }
 
-schemaUsers.statics.sendEmailToUser = function sendEmailToUser(mailOptions, plantilla, datos, callback){
-    common.renderHtml(plantilla, datos, function(err, result) {
-        if(err){
-            console.log(err);
-            return callback(err)
-        }
-        mailOptions.html = result;
-        common.sendEmail(mailOptions, function(errorSend, info){
-            if(errorSend){
-                return callback(errorSend)
+schemaUsers.statics.sendEmailToUser = async function sendEmailToUser(mailOptions, plantilla, datos){
+    const templates = new EmailTemplates();
+	templates.render(plantilla, datos, function(err, html) {
+		if(err){
+			throw {
+                body: {
+                    msg: "Error al generar plantilla de correo",
+                    info: err,
+                    code: 304
+                },
+                statusCode: 500
             }
-            return callback(null)
-        })
-    })
+		}
+		mailOptions.html = html
+	})
+    await transporter.sendMail(mailOptions, function(error, info){
+		if(error){
+			transporter.close();
+            throw {
+                body: {
+                    msg: "Error al enviar el email, intenta mas tarde",
+                    code: 304,
+                    info: error
+                },
+                statusCode: 500
+            }
+		}
+		transporter.close();
+	})
 }
 
 schemaUsers.statics.authenticateUser = function authenticateUser(state, passwordDB, passwordUser, callback){
@@ -164,7 +171,7 @@ schemaUsers.statics.authenticateUser = function authenticateUser(state, password
     return callback(false, false)
 }
 
-schemaUsers.statics.createUser = function createUser(userInfo, callback){
+schemaUsers.statics.createUser = function createUser(userInfo){
     const self = this;
     const contraHASH = crypto.HmacSHA1(userInfo.pass, process.env.KEY_SHA1)
     const payload = {
@@ -179,11 +186,14 @@ schemaUsers.statics.createUser = function createUser(userInfo, callback){
         fecha: new Date()
     }
     const myData = new self(payload)
-    myData.save().then(item => {
-        return callback(null)
-    })
-    .catch(err => {
-        return callback(err)
+    myData.save().catch(err => {
+        throw {
+            body: {
+                msg: "Error al crear el usuario en base de datos",
+                code: 304,
+                info: err
+            }
+        }
     })
 }
 

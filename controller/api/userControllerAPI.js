@@ -27,6 +27,11 @@ const error305 = {
 	msg: "faltaron datos"
 }
 
+const error400 = {
+    code: 400,
+    msg: "Ha ocurrido un error en base de datos"
+}
+
 /**
 *@api{post}/login Peticion para registrar un usuario
 *@apiVersion 0.0.0
@@ -236,24 +241,16 @@ exports.authUser = async (req, res) => {
 * }
 */
 
-exports.deleteUser = (req, res) => {
-    let email = req.body.mail
-    if(!email){
-    	console.log("faltaron datos");
-    	return res.json(error305)
-    }
-    email = Buffer.from(email, 'base64').toString('ascii')
-    Auth.deleteUser(email, function(err){
-        if(err){
-            console.log("Error eliminando")
-            return res.json(error400)
-        }
-        console.log("Cuenta eliminada satisfactoriamente")
-        return res.json({
+exports.deleteUser = async (req, res) => {
+    try {
+        await Auth.deleteUser(req.body.mail)
+        return res.status(200).json({
             msg: "Su cuenta ha sido eliminada correctamente.",
             code: 311
         })
-    })
+    } catch (error) {
+        return res.status(error.statusCode || 500).send(error.body || error.toString())
+    }
 }
 
 /**
@@ -300,38 +297,17 @@ exports.deleteUser = (req, res) => {
 * }
 */
 
-exports.verifyUser = (req, res) => {
-	const email = req.body.mail
-    if(!email){
-        res.json(error305)
-    }else{
-        Auth.findByEmail(Buffer.from(email, 'base64').toString('ascii'), function(err, userExist){
-            if(err){
-                res.send(error400)
-            }else if(!userExist){
-                res.send({
-                    code: 307,
-                    msg: "Correo incorrecto"
-                })
-            }
-            if(!userExist.estado){
-                Auth.updateStateByEmail(userExist.correo, function(errorUpdate){
-                    if(errorUpdate){
-                        res.send(error400)
-                    }
-                    res.json({
-                        code: 310,
-                        msg: "estado actualizado correctamente"
-                    })
-                })
-            }else{
-                res.json({
-                    code: 309,
-                    msg: "verificacion ya realizada"
-                })
-            }
+exports.verifyUser = async (req, res) => {
+    try {
+        const result = await Auth.findByEmail(Buffer.from(req.body.mail, 'base64').toString('ascii'), true)
+        await Auth.updateStateByEmail(result.correo, result.estado)
+        return res.status(200).json({
+            code: 310,
+            msg: "estado actualizado correctamente"
         })
-    } 
+    } catch (error) {
+        return res.status(error.statusCode || 500).send(error.body || error.toString())
+    }
 }
 
 /**
@@ -378,54 +354,29 @@ exports.verifyUser = (req, res) => {
 * }
 */
 
-exports.forgotPasswordUser = (req, res) => {
-    var userInfo = req.body
-  	if(!userInfo.mail){
-        return res.status(400).json(error305)
-    }
-    const {error} = schemaForgot.validate(userInfo);
-    if (error) {
-        return res.status(400).json({
-            errorDetail: error.details[0].message,
-            errorKey: error.details[0].context.key,
-            code: 306,
-            msg: `Por favor revise su ${error.details[0].context.key}`
-        })
-    }
-    Auth.findByEmail(userInfo.mail, function(err, userExist){
-        if(err){
-            console.log("Error consultando; "+err)
-            return res.status(500).json(error400)
-        }else if(!userExist){
-            return res.status(400).json({
-                code: 307,
-                msg: "Correo incorrecto o inexistente, compruebe la informacion"
-            })
-        }
-        const mailOptions = {
+exports.forgotPasswordUser = async (req, res) => {
+    try {
+        await Auth.validateBody(req.body, schemaForgot);
+        const result = await Auth.findByEmail(req.body.mail, true);
+        var mailOptions = {
             from: 'yourclocknoreply@gmail.com',
-            to: userInfo.mail,
+            to: req.body.mail,
             subject: 'Cambio de contraseña en Your Clock'
         };
         var plantilla = path.join(__dirname, '../..', 'views/forgotPassword.html')
         var datos = {
-            nombre: userExist.nombre1,
-            id: Buffer.from(userExist._id.toString()).toString('base64'),
+            nombre: result.nombre1,
+            id: Buffer.from(result._id.toString()).toString('base64'),
             base_url: process.env.HOST_FRONT
         }
-        Auth.sendEmailToUser(mailOptions, plantilla, datos, function(errorSend, info){
-            if(errorSend){
-                return res.status(500).json({
-                    code: 402,
-                    msg: "Error al enviar el correo, intentelo de nuevo"
-                })
-            }
-            return res.status(200).json({
-                code: 300,
-                msg: "Mensaje enviado exitosamente, verifique su correo para cambiar su contraseña"
-            })
+        await Auth.sendEmailToUser(mailOptions, plantilla, datos);
+        return res.status(200).json({
+            code: 300,
+            msg: "Mensaje enviado exitosamente, verifique su correo para cambiar su contraseña"
         })
-    })
+    } catch (error) {
+        return res.status(error.statusCode || 500).send(error.body || error.toString())
+    }
 }
 
 /**
@@ -474,21 +425,16 @@ exports.forgotPasswordUser = (req, res) => {
 * }
 */
 
-exports.recoveryPasswordUser = (req, res) => {
-  	const credentials = req.body
-  	if(!credentials.id || !credentials.pass){
-        return res.json(error305)
-  	}
-    Auth.updatePasswordById(credentials, function(err){
-        if(err){
-            return res.json(error400)
-        }
-        //console.log(common.getDateTime()+"----------------- CONTRASEÑA ACTUALIZADA -------------------")
-        return res.json({
+exports.recoveryPasswordUser = async (req, res) => {
+    try {
+        await Auth.updatePasswordById(req.body)
+        return res.status(200).json({
             code: 310,
             msg: "Contraseña reestablecida correctamente"
         })
-    })
+    } catch (error) {
+        return res.status(error.statusCode || 500).send(error.body || error.toString())
+    }
 }
 
 //*********************************** AUTENTICACION DE GOOGLE ************************************************

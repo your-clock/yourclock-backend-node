@@ -91,8 +91,6 @@ schemaUsers.statics.findByEmail = async function(email, needUserExist){
         }
         err.statusCode = 400
         throw err
-    }else if(needUserExist && result[0]){
-        return result[0]
     }else if(!needUserExist && result[0]){
         const err = new Error('El correo ya existe')
         err.body = {
@@ -102,30 +100,37 @@ schemaUsers.statics.findByEmail = async function(email, needUserExist){
         err.statusCode = 400
         throw err;
     }
+    return result[0]
 }
 
-schemaUsers.statics.updateStateByEmail = function updateStateByEmail(email, callback){
-    const self = this
-    console.log(email);
-    self.updateOne({correo: email},{$set: {estado: true}}, function(err, result){
-        if(err){
-            return callback(err)
+schemaUsers.statics.updateStateByEmail = async function(email, state) {
+    if(state){
+        const err = new Error('Verificacion ya realizada')
+        err.body = {
+            code: 309,
+            msg: "verificacion ya realizada"
         }
-        console.log(result);
-        return callback(null)
-    })
+        err.statusCode = 400
+        throw err;
+    }else{
+        const result = await this.updateOne({correo: email},{$set: {estado: true}})
+        if(result.nModified === 0){
+            const err = new Error('Actualizacion no realizada')
+            err.body = {
+                code: 309,
+                msg: "Actualizacion no realizada en base de datos"
+            }
+            err.statusCode = 400
+            throw err;
+        }
+    }
 }
 
-schemaUsers.statics.updatePasswordById = function updatePasswordByEmail(credentials, callback){
-    const self = this
+schemaUsers.statics.updatePasswordById = async function(credentials, callback) {
     const contraHASH = crypto.HmacSHA1(credentials.pass, process.env.KEY_SHA1)
     const idDecode = Buffer.from(credentials.id, 'base64').toString('ascii');
-    self.updateOne({_id: idDecode},{$set: {password: contraHASH}}, function(err, result){
-        if(err){
-            return callback(err)
-        }
-        return callback(null)
-    })
+    const result = await this.updateOne({_id: idDecode},{$set: {password: contraHASH}})
+    console.log(result);
 }
 
 schemaUsers.statics.sendEmailToUser = async function sendEmailToUser(mailOptions, plantilla, datos){
@@ -143,7 +148,7 @@ schemaUsers.statics.sendEmailToUser = async function sendEmailToUser(mailOptions
 		}
 		mailOptions.html = html
 	})
-    await transporter.sendMail(mailOptions, function(errorSend, infoSend){
+    transporter.sendMail(mailOptions, function(errorSend, infoSend){
 		if(errorSend){
 			transporter.close();
             const err = new Error('Error al enviar el email')
@@ -209,15 +214,17 @@ schemaUsers.statics.createUser = function createUser(userInfo){
     })
 }
 
-schemaUsers.statics.deleteUser = function deleteUser(email, callback){
-    const self = this
-    self.deleteOne({correo: email}, function(err, result){
-        if(err){
-            console.log(err);
-            return callback(err)
+schemaUsers.statics.deleteUser = async function(email) {
+    const result = await this.deleteOne({correo: Buffer.from(email, 'base64').toString('ascii')})
+    if(result.deletedCount === 0){
+        const err = new Error('Usuario no existe')
+        err.body = {
+            msg: "Usuario no existe en base de datos",
+            code: 305
         }
-        return callback(null)
-    })
+        err.statusCode = 400
+        throw err;
+    }
 }
 
 schemaUsers.statics.getGoogleUrl = function getGoogleUrl(){
@@ -236,21 +243,12 @@ schemaUsers.statics.getGoogleUrl = function getGoogleUrl(){
     })
 }
 
-schemaUsers.statics.findOneOrCreateByGoogle = function findOneOrCreate(condition, callback){
-    const self = this;
-    self.findOne({
-        $or: [
-            {'googleId': condition.profile.id}, {'email': condition.profile.emails[0].value}
-        ]}, (err, result) => {
-            if(err) {
-                console.log(err);
-            }
-            if(result){
-                if(err) {
-                    console.log(err);
-                }
-                return callback(err, result)
-            }
+schemaUsers.statics.findOneOrCreateByGoogle = async function(condition, callback){
+    try {
+        const result = await this.findOne({$or: [{'googleId': condition.profile.id}, {'email': condition.profile.emails[0].value}]})
+        if(result){
+            return callback(null, result)
+        }else{
             const values = {
                 googleId: condition.profile.id,
                 correo: condition.profile.emails[0].value,
@@ -261,16 +259,32 @@ schemaUsers.statics.findOneOrCreateByGoogle = function findOneOrCreate(condition
                 estado: true,
                 password: crypto.HmacSHA1(process.env.PWD_OPTIONAL, process.env.KEY_SHA1)
             }
-            self.create(values, (errorCreate, resultCreate) => {
-                if(errorCreate) {
-                    console.log(errorCreate);
-                }else{
-                    console.log("Usuario registrado por google exitosamente");
-                }
-                return callback(errorCreate, resultCreate)
-            })
+            const resultCreate = this.create(values)
+            return callback(null, resultCreate)
         }
-    )
+    } catch (error) {
+        return callback(error, null)
+    }
+
+
+    const result = await this.findOne({$or: [{'googleId': condition.profile.id}, {'email': condition.profile.emails[0].value}]})
+    if(result){
+        return callback(null, result)
+    }else{
+        const values = {
+            googleId: condition.profile.id,
+            correo: condition.profile.emails[0].value,
+            nombre1: condition.profile._json.given_name || 'SIN NOMBRE',
+            apellido1: condition.profile._json.family_name || 'SIN APELLIDO',
+            ciudad: "NOT FOUND",
+            fecha: new Date(),
+            estado: true,
+            password: crypto.HmacSHA1(process.env.PWD_OPTIONAL, process.env.KEY_SHA1)
+        }
+        self.create(values, (errorCreate, resultCreate) => {
+            return callback(errorCreate, resultCreate)
+        })
+    }
 }
 
 module.exports = mongoose.model('Usuarios', schemaUsers);

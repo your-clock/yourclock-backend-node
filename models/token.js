@@ -1,67 +1,110 @@
-const common = require('../config/common-functions')
 const jwt = require('jsonwebtoken')
 const redis = require('../config/redis-config')
 import { v4 as uuidv4 } from 'uuid';
 
-function verifyToken(uuid, callback){
-    redis.GET(uuid, (errRedis, result) => {
-        if(errRedis){
-            return callback(errRedis, null)
+function verifyToken(token){
+    return new Promise((resolve, reject) => {
+        const decode = jwt.verify(token, process.env.KEY_TOKEN)
+        redis.GET(decode.uuid, (errRedis, result) => {
+            if(errRedis){
+                reject({
+                    body: {
+                        msg: "Ha ocurrido un error al obtener la llave en redis",
+                        code: 304,
+                        info: errRedis
+                    },
+                    statusCode: 500
+                })
+            }else if(!result){
+                resolve(false)
+            }else{
+                resolve(true)
+            }
+        })
+    })
+}
+
+async function createToken(tokenData){
+    return new Promise((resolve, reject) => {
+        const payload = {
+            uuid: uuidv4()
         }
-        jwt.verify(result, process.env.KEY_TOKEN, function(err, decoded){
+        const result = jwt.sign(payload, process.env.KEY_TOKEN);
+        redis.SETEX(payload.uuid, 60*30, JSON.stringify(tokenData), (err) => {
             if(err){
-                console.log(common.getDateTime()+":--------------------- TOKEN EXPIRADO -----------------------\n")
-                return callback(err, null)
+                reject({
+                    body: {
+                        msg: "Ha ocurrido un error al guardar la llave en redis",
+                        code: 304,
+                        info: err
+                    },
+                    statusCode: 500
+                })
+            }else{
+                resolve(result)
             }
-            console.log(common.getDateTime()+":--------------------- TOKEN VALIDADO -----------------------\n")
-            return callback(null, decoded)
         })
     })
 }
 
-function createToken(tokenData, callback){
-    if(!tokenData.uuid){
-        tokenData.uuid = uuidv4();
-    }
-	jwt.sign(tokenData, process.env.KEY_TOKEN, {expiresIn: 60*60}, function(err, newToken){
-		if(err){
-			console.log(common.getDateTime()+":-------------------- TOKEN NO CREADO -----------------------\n")
-			console.log(err)
-			return callback(err, null)
-		}
-        console.log(common.getDateTime()+":---------------------- TOKEN CREADO ------------------------\n")
-        redis.SETEX(tokenData.uuid, 60*30, newToken)
-        return callback(null, tokenData.uuid)
-	})
-}
-
-function updateToken(uuidReq, callback){
-    const self = this
-    self.verifyToken(uuidReq, function(err, decoded){
-        if(err){
-            return callback(err, null)
-        }
-        const tokenData = {
-            nombre: decoded.nombre,
-            correo: decoded.correo,
-            id: decoded.id,
-            uuid: decoded.uuid
-        }
-        self.createToken(tokenData, function(errorCreate, uuid){
-            if(errorCreate){
-                return callback(errorCreate, null)
+async function updateToken(tokenReq){
+    return new Promise((resolve, reject) => {
+        const decode = jwt.verify(tokenReq, process.env.KEY_TOKEN)
+        redis.GET(decode.uuid, (errRedis, result) => {
+            if(errRedis){
+                reject({
+                    body: {
+                        msg: "Ha ocurrido un error al obtener la llave en redis",
+                        code: 304,
+                        info: errRedis
+                    },
+                    statusCode: 500
+                })
+            }else if(!result){
+                reject({
+                    body: {
+                        msg: "Su token se ha vencido, ingrese de nuevo",
+                        code: 304
+                    },
+                    statusCode: 500
+                })
+            }else{
+                redis.SETEX(decode.uuid, 60*30, result, (err) => {
+                    if(err){
+                        reject({
+                            body: {
+                                msg: "Ha ocurrido un error al guardar la llave en redis",
+                                code: 304,
+                                info: err
+                            },
+                            statusCode: 500
+                        })
+                    }else{
+                        resolve()
+                    }
+                })
             }
-            return callback(null, uuid)
         })
     })
 }
 
-function deleteToken(uuid, callback) {
-    redis.DEL(uuid, (err, result) => {
-        if(err){
-            return callback(err, null)
-        }
-        return callback(null, result)
+function deleteToken(token) {
+    return new Promise((resolve, reject) => {
+        const decode = jwt.verify(token, process.env.KEY_TOKEN)
+        redis.DEL(decode.uuid, (err, result) => {
+            if(err){
+                reject({
+                    body: {
+                        msg: "Ha ocurrido un error al eliminar la llave en redis",
+                        code: 304,
+                        info: err
+                    },
+                    statusCode: 500
+                })
+            }else{
+                resolve(result)
+            }
+        })
     })
 }
 

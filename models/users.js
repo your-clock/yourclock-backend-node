@@ -265,26 +265,6 @@ schemaUsers.statics.findOneOrCreateByGoogle = async function(condition, callback
     } catch (error) {
         return callback(error, null)
     }
-
-
-    const result = await this.findOne({$or: [{'googleId': condition.profile.id}, {'email': condition.profile.emails[0].value}]})
-    if(result){
-        return callback(null, result)
-    }else{
-        const values = {
-            googleId: condition.profile.id,
-            correo: condition.profile.emails[0].value,
-            nombre1: condition.profile._json.given_name || 'SIN NOMBRE',
-            apellido1: condition.profile._json.family_name || 'SIN APELLIDO',
-            ciudad: "NOT FOUND",
-            fecha: new Date(),
-            estado: true,
-            password: crypto.HmacSHA1(process.env.PWD_OPTIONAL, process.env.KEY_SHA1)
-        }
-        self.create(values, (errorCreate, resultCreate) => {
-            return callback(errorCreate, resultCreate)
-        })
-    }
 }
 
 module.exports = mongoose.model('Usuarios', schemaUsers);

@@ -16,6 +16,13 @@ jobs:
     env:
       GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
       GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+      KEY_SHA1: ${{ secrets.KEY_SHA1 }}
+      KEY_TOKEN: ${{ secrets.KEY_TOKEN }}
+      ETHEREAL_HOST: ${{ secrets.ETHEREAL_HOST }}
+      ETHEREAL_PORT: ${{ secrets.ETHEREAL_PORT }}
+      ETHEREAL_PWD: ${{ secrets.ETHEREAL_PWD }}
+      ETHEREAL_USER: ${{ secrets.ETHEREAL_USER }}
+      SECRET_SESSION: ${{ secrets.SECRET_SESSION }}
     steps:
       - uses: actions/checkout@v2
         with:

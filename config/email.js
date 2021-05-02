@@ -29,13 +29,13 @@ if(process.env.NODE_ENV === "production"){
 	};
 }else if(process.env.NODE_ENV === "development" || "test"){
 	mailConfig = {
-		host: process.env.host_email,
-		port: process.env.port_email,
+		host: process.env.ETHEREAL_HOST,
+		port: process.env.ETHEREAL_PORT,
 		requireTLS: true,
 		secured: true,
 		auth: {
-			user: process.env.ethereal_user,
-			pass: process.env.ethereal_pwd
+			user: process.env.ETHEREAL_USER,
+			pass: process.env.ETHEREAL_PWD
 		}
 	};
 }

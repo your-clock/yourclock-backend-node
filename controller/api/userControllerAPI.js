@@ -440,7 +440,7 @@ exports.recoveryPasswordUser = async (req, res) => {
 //*********************************** AUTENTICACION DE GOOGLE ************************************************
 
 exports.getUrlGoogle = function(req, res){
-	return res.send(Auth.getGoogleUrl());
+	return res.status(200).send(Auth.getGoogleUrl());
 };
 
 exports.callbackGoogle = function(req, res) {

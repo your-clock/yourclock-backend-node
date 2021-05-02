@@ -11,9 +11,8 @@ exports.setData = (req, res) => {
 	if(!data.temp_amb || !data.temp_local){
 		res.status(400).json(error305)
 	}else{
-        console.log(data)
         relojModel.emitData(data, function(err, result) {
-            res.send("OK")
+            res.status(200).send("OK")
         })
 	}
 }

@@ -27,7 +27,7 @@ if(process.env.NODE_ENV === "production"){
 			accessToken: myAccessToken //access token variable we defined earlier
 		}
 	};
-}else if(process.env.NODE_ENV === "development"){
+}else if(process.env.NODE_ENV === "development" || "test"){
 	mailConfig = {
 		host: process.env.host_email,
 		port: process.env.port_email,

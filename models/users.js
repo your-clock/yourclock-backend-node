@@ -1,5 +1,5 @@
-import mongoose from 'mongoose';
-import { google } from 'googleapis';
+const mongoose = require('mongoose');
+const { google } = require('googleapis');
 const crypto = require('crypto-js');
 const EmailTemplates = require('swig-email-templates');
 const transporter = require('../config/email')
@@ -126,11 +126,19 @@ schemaUsers.statics.updateStateByEmail = async function(email, state) {
     }
 }
 
-schemaUsers.statics.updatePasswordById = async function(credentials, callback) {
-    const contraHASH = crypto.HmacSHA1(credentials.pass, process.env.KEY_SHA1)
+schemaUsers.statics.updatePasswordById = async function(credentials) {
+    const contraHASH = crypto.HmacSHA1(credentials.pass, process.env.KEY_SHA1).toString(crypto.enc.Hex)
     const idDecode = Buffer.from(credentials.id, 'base64').toString('ascii');
     const result = await this.updateOne({_id: idDecode},{$set: {password: contraHASH}})
-    console.log(result);
+    if(result.nModified === 0){
+        const err = new Error('Actualizacion no realizada')
+        err.body = {
+            code: 309,
+            msg: "Actualizacion no realizada en base de datos"
+        }
+        err.statusCode = 400
+        throw err;
+    }
 }
 
 schemaUsers.statics.sendEmailToUser = async function sendEmailToUser(mailOptions, plantilla, datos){

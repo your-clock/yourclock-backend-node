@@ -1,18 +1,16 @@
 const passport = require('./config/passport');
 const express = require('express');
 const morgan = require('morgan');
-const mongoose = require('mongoose');
 const cors = require('cors');
 const path = require('path');
 const app = express();
 const http = require('http').createServer(app)
-const common = require('./config/common-functions');
 const cookieParser = require('cookie-parser');
 const session = require('express-session');
+require('./config/connectdb');
 const mongoDBStore = require('connect-mongodb-session')(session);
 const assert = require('assert').strict;
 require('dotenv').config();
-require('./config/redis-config')
 
 app.use(morgan('tiny'));
 app.use(cors({
@@ -33,7 +31,7 @@ app.use('/google030be2b97e367ddd', function(req, res){
 });
 
 let store;
-if(process.env.NODE_ENV === 'development'){
+if(process.env.NODE_ENV === 'development' || 'test'){
   store = new session.MemoryStore;
 }else{
   store = new mongoDBStore({
@@ -53,14 +51,6 @@ app.use(session({
 	resave: 'true',
 	secret: process.env.SECRET_SESSION
 }));
-
-mongoose.connect(process.env.MONGO_URI, {useNewUrlParser: true, useUnifiedTopology: true}, function(err){
-	if(err){
-		console.log(`${common.getDateTime()}: Error conectando a Atlas: ${err}`)
-	}else{
-		console.log(`${common.getDateTime()}: Conectado a Atlas`)
-	}
-})
 
 const userRoutes = require('./routes/Users')
 const tokenRoutes = require('./routes/token')

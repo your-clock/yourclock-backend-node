@@ -1,4 +1,4 @@
-import { google } from 'googleapis';
+const { google } = require('googleapis');
 
 function urlGoogle() {
   const auth = new google.auth.OAuth2(

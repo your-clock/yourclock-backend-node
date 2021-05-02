@@ -8,7 +8,7 @@ chai.use(chaiHttp);
 
 describe('Controlador api de usuarios', () => {
 
-    before(async () => await mockDB.connect());
+    before(() => { return mockDB.connect() });
 
     it('POST /login', (done) => {
         chai.request(server)
@@ -23,7 +23,7 @@ describe('Controlador api de usuarios', () => {
                 "city": "Bogota"
             })
             .end((err, res) => {
-                if (err) throw err;
+                if(err){ throw err; }
                 res.should.have.status(201)
                 res.body.should.be.a('object')
                 res.body.should.have.property('msg').eq('Usuario registrado correctamente, verifique su correo para autenticar su cuenta')
@@ -40,7 +40,7 @@ describe('Controlador api de usuarios', () => {
                 "pass": "97122110420"
             })
             .end((err, res) => {
-                if (err) throw err;
+                if(err){ throw err; }
                 res.should.have.status(400)
                 res.body.should.be.a('object')
                 res.body.should.have.property('msg').eq('Correo no existente, verifique la informacion')
@@ -56,7 +56,7 @@ describe('Controlador api de usuarios', () => {
                 "mail": "e.davidgv@hotmail.com"
             })
             .end((err, res) => {
-                if (err) throw err;
+                if(err){ throw err; }
                 res.should.have.status(400)
                 res.body.should.be.a('object')
                 res.body.should.have.property('msg').eq('Correo no existente, verifique la informacion')
@@ -72,7 +72,7 @@ describe('Controlador api de usuarios', () => {
                 "mail": "ZWplbXBsb0B0dWRvbWluaW8uY29t"
             })
             .end((err, res) => {
-                if (err) throw err;
+                if(err){ throw err; }
                 res.should.have.status(400)
                 res.body.should.be.a('object')
                 res.body.should.have.property('msg').eq('Usuario no existe en base de datos')
@@ -88,7 +88,7 @@ describe('Controlador api de usuarios', () => {
                 "mail": "e.davidgv@hotmail.com"
             })
             .end((err, res) => {
-                if (err) throw err;
+                if(err){ throw err; }
                 res.should.have.status(400)
                 res.body.should.be.a('object')
                 res.body.should.have.property('msg').eq('Correo no existente, verifique la informacion')
@@ -105,7 +105,7 @@ describe('Controlador api de usuarios', () => {
                 "pass": "Erney.garcia1997"
             })
             .end((err, res) => {
-                if (err) throw err;
+                if(err){ throw err; }
                 res.should.have.status(400)
                 res.body.should.be.a('object')
                 res.body.should.have.property('msg').eq('Actualizacion no realizada en base de datos')
@@ -118,7 +118,7 @@ describe('Controlador api de usuarios', () => {
         chai.request(server)
             .get("/api/user/auth/google")
             .end((err, res) => {
-                if (err) throw err;
+                if(err){ throw err; }
                 res.should.have.status(200)
                 done();
             })

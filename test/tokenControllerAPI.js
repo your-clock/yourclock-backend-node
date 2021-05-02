@@ -8,7 +8,7 @@ chai.use(chaiHttp);
 
 describe('Controlador api de token', () => {
 
-    before(async () => await mockDB.connect());
+    before(() => { return mockDB.connect() });
 
     it('POST /createtoken', (done) => {
         chai.request(server)
@@ -21,7 +21,7 @@ describe('Controlador api de token', () => {
                 }
             })
             .end((err, res) => {
-                if (err) throw err;
+                if(err){ throw err; }
                 res.should.have.status(201)
                 res.body.should.be.a('object')
                 res.body.should.have.property('msg').eq('Token creado correctamente')
@@ -38,7 +38,7 @@ describe('Controlador api de token', () => {
                 "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1dWlkIjoiZTA4ZGVmMDMtM2M4OS00MGQ5LWI2YWYtNmU2ZTRmMjE0NGQ0IiwiaWF0IjoxNjE5NDI0MjkwfQ.dcU_tpprafTWQ_pOcCMzEa75HNPIzaeYiDbgDhOJ4Mw"
             })
             .end((err, res) => {
-                if (err) throw err;
+                if(err){ throw err; }
                 res.should.have.status(200)
                 res.body.should.be.a('boolean')
                 res.body.should.be.eq(false)
@@ -53,7 +53,7 @@ describe('Controlador api de token', () => {
                 "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1dWlkIjoiZTA4ZGVmMDMtM2M4OS00MGQ5LWI2YWYtNmU2ZTRmMjE0NGQ0IiwiaWF0IjoxNjE5NDI0MjkwfQ.dcU_tpprafTWQ_pOcCMzEa75HNPIzaeYiDbgDhOJ4Mw"
             })
             .end((err, res) => {
-                if (err) throw err;
+                if(err){ throw err; }
                 res.should.have.status(500)
                 res.body.should.be.a('object')
                 res.body.should.have.property('msg').eq('Su token se ha vencido, ingrese de nuevo')
@@ -69,7 +69,7 @@ describe('Controlador api de token', () => {
                 "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1dWlkIjoiZTA4ZGVmMDMtM2M4OS00MGQ5LWI2YWYtNmU2ZTRmMjE0NGQ0IiwiaWF0IjoxNjE5NDI0MjkwfQ.dcU_tpprafTWQ_pOcCMzEa75HNPIzaeYiDbgDhOJ4Mw"
             })
             .end((err, res) => {
-                if (err) throw err;
+                if(err){ throw err; }
                 res.should.have.status(200)
                 res.body.should.be.a('object')
                 res.body.should.have.property('msg').eq('Token eliminado exitosamente de redis')

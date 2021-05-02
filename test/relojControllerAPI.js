@@ -28,21 +28,4 @@ describe('Controlador api de reloj', () => {
                 done();
             })
     });
-
-    it('POST /alarma', (done) => {
-        chai.request(server)
-            .post("/api/reloj/alarma")
-            .send({
-                "time": "99:99"
-            })
-            .end((err, res) => {
-                if(err){
-                    throw err;
-                }
-                console.log(res.body)
-                res.should.have.status(200)
-                res.body.should.be.a('object')
-                done();
-            })
-    });
 });

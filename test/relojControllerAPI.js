@@ -8,7 +8,9 @@ chai.use(chaiHttp);
 
 describe('Controlador api de reloj', () => {
 
-    before(() => { return mockDB.connect() });
+    before(() => {
+        return mockDB.connect()
+    });
 
     it('POST /datos', (done) => {
         chai.request(server)
@@ -18,7 +20,9 @@ describe('Controlador api de reloj', () => {
                 "temp_local": 50
             })
             .end((err, res) => {
-                if(err){ throw err; }
+                if(err){
+                    throw err;
+                }
                 res.should.have.status(200)
                 res.body.should.be.a('object')
                 done();
@@ -32,7 +36,9 @@ describe('Controlador api de reloj', () => {
                 "time": "99:99"
             })
             .end((err, res) => {
-                if(err){ throw err; }
+                if(err){
+                    throw err;
+                }
                 console.log(res.body)
                 res.should.have.status(200)
                 res.body.should.be.a('object')

@@ -7,7 +7,7 @@ chai.should();
 chai.use(chaiHttp);
 
 const dataToken = {
-    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1dWlkIjoiZTA4ZGVmMDMtM2M4OS00MGQ5LWI2YWYtNmU2ZTRmMjE0NGQ0IiwiaWF0IjoxNjE5NDI0MjkwfQ.dcU_tpprafTWQ_pOcCMzEa75HNPIzaeYiDbgDhOJ4Mw"
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1dWlkIjoiZTA4ZGVmMDMtM2M4OS00MGQ5LWI2YWYtNmU2ZTRmMjE0NGQ0IiwiaWF0IjoxNjE5NDI0MjkwfQ.dcU_tpprafTWQ_pOcCMzEa75HNPIzaeYiDbgDhOJ4Mw" //NOSONAR
 }
 
 describe('Controlador api de token', () => {

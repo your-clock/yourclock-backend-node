@@ -6,6 +6,9 @@ const mockDB = require('../config/connectdb');
 chai.should();
 chai.use(chaiHttp);
 
+const testEmail = "prueba123@correo.com"
+const msgEmailInnexist = 'Correo no existente, verifique la informacion'
+
 describe('Controlador api de usuarios', () => {
 
     before(() => {
@@ -16,7 +19,7 @@ describe('Controlador api de usuarios', () => {
         chai.request(server)
             .post("/api/user/login")
             .send({
-                "mail": "e.davidasdgar23@gmail.com",
+                "mail": testEmail,
                 "pass": "97122110420",
                 "name1": "Erney",
                 "name2": "David",
@@ -40,7 +43,7 @@ describe('Controlador api de usuarios', () => {
         chai.request(server)
             .post("/api/user/auth")
             .send({
-                "mail": "e.davidgv@hotmail.com",
+                "mail": testEmail,
                 "pass": "97122110420"
             })
             .end((err, res) => {
@@ -49,7 +52,7 @@ describe('Controlador api de usuarios', () => {
                 }
                 res.should.have.status(400)
                 res.body.should.be.a('object')
-                res.body.should.have.property('msg').eq('Correo no existente, verifique la informacion')
+                res.body.should.have.property('msg').eq(msgEmailInnexist)
                 res.body.should.have.property('code').eq(304)
                 done();
             })
@@ -59,7 +62,7 @@ describe('Controlador api de usuarios', () => {
         chai.request(server)
             .post("/api/user/verify")
             .send({
-                "mail": "e.davidgv@hotmail.com"
+                "mail": testEmail
             })
             .end((err, res) => {
                 if(err){
@@ -67,7 +70,7 @@ describe('Controlador api de usuarios', () => {
                 }
                 res.should.have.status(400)
                 res.body.should.be.a('object')
-                res.body.should.have.property('msg').eq('Correo no existente, verifique la informacion')
+                res.body.should.have.property('msg').eq(msgEmailInnexist)
                 res.body.should.have.property('code').eq(304)
                 done();
             })
@@ -95,7 +98,7 @@ describe('Controlador api de usuarios', () => {
         chai.request(server)
             .post("/api/user/forgotpassword")
             .send({
-                "mail": "e.davidgv@hotmail.com"
+                "mail": testEmail
             })
             .end((err, res) => {
                 if(err){
@@ -103,7 +106,7 @@ describe('Controlador api de usuarios', () => {
                 }
                 res.should.have.status(400)
                 res.body.should.be.a('object')
-                res.body.should.have.property('msg').eq('Correo no existente, verifique la informacion')
+                res.body.should.have.property('msg').eq(msgEmailInnexist)
                 res.body.should.have.property('code').eq(304)
                 done();
             })

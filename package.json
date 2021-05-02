@@ -7,7 +7,7 @@
     "start": "babel-node server.js --exec",
     "start:dev": "nodemon server.js --exec babel-node",
     "test": "cross-env NODE_ENV=test mocha --timeout 10000",
-    "test:coverage": "cross-env NODE_ENV=test nyc --reporter=html mocha --timeout 10000 --exit"
+    "test:coverage": "cross-env NODE_ENV=test nyc --reporter=lcov mocha --timeout 10000 --exit"
   },
   "keywords": [],
   "author": "DavidG97",

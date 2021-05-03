@@ -51,7 +51,8 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: lcov-report
-          path: coverage/lcov.info
+          path: coverage
+
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@master
         env:

@@ -186,7 +186,7 @@ schemaUsers.statics.authenticateUser = function authenticateUser(state, password
         if(passwordHASH !== passwordDB){
             const err = new Error('Usuario no autenticado')
             err.body = {
-                msg: "contraseña incorrecta, intentelo de nuevo",
+                msg: "contrasena incorrecta, intentelo de nuevo",
                 code: 306
             }
             err.statusCode = 400

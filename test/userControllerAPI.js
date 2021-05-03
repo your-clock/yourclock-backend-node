@@ -52,8 +52,8 @@ describe('Controlador api de usuarios', () => {
                 }
                 res.should.have.status(400)
                 res.body.should.be.a('object')
-                res.body.should.have.property('msg').eq(msgEmailInnexist)
-                res.body.should.have.property('code').eq(304)
+                res.body.should.have.property('msg').eq('Por favor verifique su cuenta para continuar')
+                res.body.should.have.property('code').eq(308)
                 done();
             })
     });
@@ -104,10 +104,10 @@ describe('Controlador api de usuarios', () => {
                 if(err){
                     throw err;
                 }
-                res.should.have.status(400)
+                res.should.have.status(200)
                 res.body.should.be.a('object')
-                res.body.should.have.property('msg').eq(msgEmailInnexist)
-                res.body.should.have.property('code').eq(304)
+                res.body.should.have.property('msg').eq('Mensaje enviado exitosamente, verifique su correo para cambiar su contraseña')
+                res.body.should.have.property('code').eq(300)
                 done();
             })
     });

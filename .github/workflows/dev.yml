@@ -64,6 +64,7 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
           args: >
+            -X
             -Dsonar.branch.target=${{ env.branch_default }}
             -Dsonar.branch.name=${{ env.branch_default }}
       - name: SonarCloud Verify results

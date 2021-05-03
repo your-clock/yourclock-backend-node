@@ -52,6 +52,10 @@ jobs:
         with:
           name: lcov-report
           path: coverage/lcov.info
+      - name: Fix code coverage paths
+        working-directory: ./coverage
+        run: |
+          sed -i 's/\/home\/runner\/work\/${{ env.project_name }}\/${{ env.project_name }}\//\/github\/workspace\//g' lcov.info
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@master
         env:

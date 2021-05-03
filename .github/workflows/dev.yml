@@ -33,8 +33,8 @@ jobs:
           node-version: 12.x
       - name: Install and build tests
         shell: bash
-        run: npm i && npm run test:coverage
-      - name: Upload coverage info
+        run: npm ci && npm run test:coverage
+      - name: Upload coverage report
         uses: actions/upload-artifact@v2
         with:
           name: lcov-report
@@ -55,7 +55,7 @@ jobs:
       - name: Fix code coverage paths
         working-directory: ./coverage
         run: |
-          sed -i 's/\/home\/runner\/work\/${{ env.project_name }}\/${{ env.project_name }}\//\/github\/workspace\//g' coverage/lcov.info
+          sed -i 's+/home/runner/work/${{ env.project_name }}\/${{ env.project_name }}+/github/workspace+g' coverage/lcov.info
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@master
         env:

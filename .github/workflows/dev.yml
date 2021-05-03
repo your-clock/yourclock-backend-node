@@ -56,7 +56,7 @@ jobs:
         working-directory: ./coverage
         run: |
           ls
-          sed -i 's+/home/runner/work/${{ env.project_name }}/${{ env.project_name }}+/github/workspace+g' coverage/lcov.info
+          sed -i 's/\/home\/runner\/work\/${{ env.project_name }}\/${{ env.project_name }}\//\/github\/workspace\//g' coverage/lcov.info
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@master
         env:

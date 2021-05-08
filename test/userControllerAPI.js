@@ -15,16 +15,16 @@ describe('Controlador api de usuarios', () => {
         return mockDB.connect()
     });
 
-    it('POST /login', (done) => {
+    it('POST /login success', (done) => {
         chai.request(server)
             .post("/api/user/login")
             .send({
                 "mail": testEmail,
-                "pass": "97122110420",
-                "name1": "Erney",
-                "name2": "David",
-                "lastName1": "Garcia",
-                "lastName2": "Vergara",
+                "pass": "P4sSW0rD*",
+                "name1": "Usuario",
+                "name2": "Prueba",
+                "lastName1": "Tests",
+                "lastName2": "Unitarios",
                 "city": "Bogota"
             })
             .end((err, res) => {
@@ -35,6 +35,32 @@ describe('Controlador api de usuarios', () => {
                 res.body.should.be.a('object')
                 res.body.should.have.property('msg').eq('Usuario registrado correctamente, verifique su correo para autenticar su cuenta')
                 res.body.should.have.property('code').eq(300)
+                done();
+            })
+    });
+
+    it('POST /login failed', (done) => {
+        chai.request(server)
+            .post("/api/user/login")
+            .send({
+                "mail": testEmail,
+                "pass": "123",
+                "name1": "Usuario",
+                "name2": "Pruebas",
+                "lastName1": "Tests",
+                "lastName2": "Unitarios",
+                "city": "Bogota"
+            })
+            .end((err, res) => {
+                if(err){
+                    throw err;
+                }
+                res.should.have.status(400)
+                res.body.should.be.a('object')
+                res.body.should.have.property('msg').eq('Por favor revise su pass')
+                res.body.should.have.property('errorDetail').eq('"pass" length must be at least 8 characters long')
+                res.body.should.have.property('errorKey').eq('pass')
+                res.body.should.have.property('code').eq(306)
                 done();
             })
     });
@@ -94,7 +120,7 @@ describe('Controlador api de usuarios', () => {
             })
     });
 
-    it('POST /forgotpassword', (done) => {
+    it('POST /forgotpassword success', (done) => {
         chai.request(server)
             .post("/api/user/forgotpassword")
             .send({
@@ -108,6 +134,26 @@ describe('Controlador api de usuarios', () => {
                 res.body.should.be.a('object')
                 res.body.should.have.property('msg').eq('Mensaje enviado exitosamente, verifique su correo para cambiar su contraseña')
                 res.body.should.have.property('code').eq(300)
+                done();
+            })
+    });
+
+    it('POST /forgotpassword failed', (done) => {
+        chai.request(server)
+            .post("/api/user/forgotpassword")
+            .send({
+                "mail": "pruebascorreo.com"
+            })
+            .end((err, res) => {
+                if(err){
+                    throw err;
+                }
+                res.should.have.status(400)
+                res.body.should.be.a('object')
+                res.body.should.have.property('msg').eq('Por favor revise su mail')
+                res.body.should.have.property('errorDetail').eq('"mail" must be a valid email')
+                res.body.should.have.property('errorKey').eq('mail')
+                res.body.should.have.property('code').eq(306)
                 done();
             })
     });

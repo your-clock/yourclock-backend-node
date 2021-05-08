@@ -98,7 +98,6 @@ exports.verifyToken = async (req, res) => {
 		const result = await token.verifyToken(req.body.token)
 		return res.status(200).send(result)
 	} catch (error) {
-		console.log(error);
 		return res.status(error.statusCode || 500).send(error.body || error.toString())
 	}
 }

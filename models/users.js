@@ -156,7 +156,7 @@ schemaUsers.statics.sendEmailToUser = async function sendEmailToUser(mailOptions
 		}
 		mailOptions.html = html
 	})
-    transporter.sendMail(mailOptions, function(errorSend, infoSend){
+    transporter.sendMail(mailOptions, function(errorSend){
 		if(errorSend){
 			transporter.close();
             const err = new Error('Error al enviar el email')
@@ -195,7 +195,7 @@ schemaUsers.statics.authenticateUser = function authenticateUser(state, password
     }
 }
 
-schemaUsers.statics.createUser = function createUser(userInfo){
+schemaUsers.statics.createUser = async function createUser(userInfo){
     const self = this;
     const contraHASH = crypto.HmacSHA1(userInfo.pass, process.env.KEY_SHA1)
     const payload = {
@@ -210,7 +210,7 @@ schemaUsers.statics.createUser = function createUser(userInfo){
         fecha: new Date()
     }
     const myData = new self(payload)
-    myData.save().catch(error => {
+    await myData.save().catch(error => {
         const err = new Error('Error al crear el usuario')
         err.body = {
             msg: "Error al crear el usuario en base de datos",

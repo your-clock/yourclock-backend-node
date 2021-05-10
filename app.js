@@ -7,7 +7,7 @@ const app = express();
 const http = require('http').createServer(app)
 const cookieParser = require('cookie-parser');
 const session = require('express-session');
-require('./config/connectdb');
+const database = require('./config/connectdb');
 const mongoDBStore = require('connect-mongodb-session')(session);
 const assert = require('assert').strict;
 require('dotenv').config();
@@ -43,6 +43,8 @@ if(process.env.NODE_ENV === 'development' || 'test'){
     assert.ok(false);
   });
 }
+
+database.connect();
 
 app.use(session({
 	cookie: { maxAge: 240 * 60 * 60 * 1000},

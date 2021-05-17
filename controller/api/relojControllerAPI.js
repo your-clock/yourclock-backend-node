@@ -3,7 +3,7 @@ const relojModel = require('../../models/reloj')
 exports.setData = async (req, res) => {
 	try {
 		await relojModel.emitData(req.body, req.headers.device_id)
-		res.status(200).send("OK")
+		return res.status(200).send("OK")
 	} catch (error) {
 		return res.status(error.statusCode || 500).send(error.body || error.toString())
 	}

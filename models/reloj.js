@@ -12,7 +12,6 @@ function emitData(data, deviceId) {
             })
         }else{
             const globalSocket = require('../config/socket-config')
-            const privateSocket = require('../server')
             globalSocket.to(deviceId).emit('datos', data)
             resolve()
         }

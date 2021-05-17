@@ -1,10 +1,15 @@
-const redis = require('redis')
-
-const client = redis.createClient({
-    port: process.env.PORT_REDIS,
-    host: process.env.HOST_REDIS,
-    password: process.env.PWD_REDIS
-})
+var client;
+if(process.env.NODE_ENV === "test"){
+    const redis = require("redis-mock")
+    client = redis.createClient();
+}else{
+    const redis = require('redis');
+    client = redis.createClient({
+        port: process.env.PORT_REDIS,
+        host: process.env.HOST_REDIS,
+        password: process.env.PWD_REDIS
+    })
+}
 
 client.on('connect', () => {
     console.log('Client connected to redis.');

@@ -1,5 +1,10 @@
 const token = require('../../models/token')
 
+const error305 = {
+	code: 305,
+	msg: "faltaron datos"
+}
+
 /**
 *@api{post}/updatetoken Peticion para actualizar token del usuario
 *@apiVersion 0.0.1
@@ -46,33 +51,16 @@ const token = require('../../models/token')
 * }
 */
 
-exports.updateToken = (req, res) => {
-
-	const uuidReq = req.body.uuid
-
-	if(!uuidReq){
-		return res.status(400).json({
-			 code: 305,
-			 msg: "faltaron datos"
-		})
-	}
-	token.updateToken(uuidReq, function (err, uuid) {
-		if (err) {
-			return res.status(500).json({
-				msg: "Ha ocurrido un error al generar el token, intentelo de nuevo",
-				code: 401
-			});
-		}
+exports.updateToken = async (req, res) => {
+	try {
+		await token.updateToken(req.body.token);
 		return res.status(200).json({
 			msg: "Token enviado correctamente",
-			code: 300,
-			uuid: uuid
+			code: 300
 		});
-	})
-	return res.status(500).json({
-		msg: "Ha ocurrido interno en el servidor",
-		code: 403
-	})
+	} catch (error) {
+		return res.status(error.statusCode || 500).send(error.body || error.toString())
+	}
 }
 
 /**
@@ -105,22 +93,13 @@ exports.updateToken = (req, res) => {
 * }
 */
 
-exports.verifyToken =  (req, res) => {
-
-	let uuid_req = req.body.uuid
-
-	if(!uuid_req){
-		return res.status(400).json({
-			 code: 305,
-			 msg: "faltaron datos"
-		})
+exports.verifyToken = async (req, res) => {
+	try {
+		const result = await token.verifyToken(req.body.token)
+		return res.status(200).send(result)
+	} catch (error) {
+		return res.status(error.statusCode || 500).send(error.body || error.toString())
 	}
-	token.verifyToken(uuid_req, function(err) {
-		if(err){
-			return res.send(false)
-		}
-		return res.send(true)
-	})
 }
 
 /**
@@ -173,29 +152,17 @@ exports.verifyToken =  (req, res) => {
 * }
 */
 
-exports.createToken = (req, res) => {
-
-	let tokenData = req.body.tokenData
-
-	if(!tokenData){
-		return res.status(400).json({
-			 code: 305,
-			 msg: "faltaron datos"
-		})
-	}
-	token.createToken(tokenData, function(err, uuid) {
-		if (err) {
-			return res.status(500).json({
-				msg: "Ha ocurrido un error al generar el token, intentelo de nuevo",
-				code: 401
-			});
-		}
+exports.createToken = async (req, res) => {
+	try {
+		const resultToken = await token.createToken(req.body.tokenData)
 		return res.status(201).json({
 			msg: "Token creado correctamente",
 			code: 300,
-			uuid: uuid
+			token: resultToken
 		});
-	})
+	} catch (error) {
+		return res.status(error.statusCode || 500).send(error.body || error.toString())
+	}
 }
 
 /**
@@ -242,24 +209,15 @@ exports.createToken = (req, res) => {
 * }
 */
 
-exports.deleteToken = (req, res) => {
-	let uuid = req.body.uuid
-	if(!uuid){
-		return res.status(400).json({
-			code: 305,
-			msg: "faltaron datos"
-	   })
-	}
-	token.deleteToken(uuid, function (err, result) {
-		if(err){
-			return res.status(500).json({
-				msg: "Ha ocurrido un error al eliminar el token, intentelo de nuevo",
-				code: 402
-			});
-		}
+exports.deleteToken = async (req, res) => {
+
+	try {
+		await token.deleteToken(req.body.token)
 		return res.status(200).json({
 			code: 301,
-			msg: "Token eliminado exitosamente, ID: "+result
-	   })
-	})
+			msg: "Token eliminado exitosamente de redis"
+	    })
+	} catch (error) {
+		return res.status(error.statusCode || 500).send(error.body || error.toString())
+	}
 }

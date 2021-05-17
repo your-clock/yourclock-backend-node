@@ -70,8 +70,6 @@ jobs:
 
   deploy-heroku:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/dev'
-    needs: sonar
     environment: dev
     steps:
       - uses: actions/checkout@v2

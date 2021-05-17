@@ -157,8 +157,8 @@ schemaUsers.statics.sendEmailToUser = async function sendEmailToUser(mailOptions
 		mailOptions.html = html
 	})
     transporter.sendMail(mailOptions, function(errorSend){
+        transporter.close();
 		if(errorSend){
-			transporter.close();
             const err = new Error('Error al enviar el email')
             err.body = {
                 msg: "Error al enviar el email, intenta mas tarde",
@@ -168,7 +168,6 @@ schemaUsers.statics.sendEmailToUser = async function sendEmailToUser(mailOptions
             err.statusCode = 500
             throw err;
 		}
-		transporter.close();
 	})
 }
 

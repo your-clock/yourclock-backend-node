@@ -9,7 +9,4 @@ const socketio = require('socket.io')(http, {
     allowEIO3: true
 })
 
-socketio.on("connection", socket => {
-	console.log(`Usuario conectado por socket, id: ${socket.id}`)
-    module.exports = socket
-})
+module.exports = socketio

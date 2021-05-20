@@ -1,15 +1,10 @@
 const userModel = require('../models/users')
 const chai = require('chai');
-const mockDB = require('../config/connectdb');
 const path = require('path');
 
 chai.should();
 
 describe('Modelos de usuarios', () => {
-
-    before(() => {
-        return mockDB.connect()
-    });
 
     it('model updateStateByEmail failed', async () => {
         try {

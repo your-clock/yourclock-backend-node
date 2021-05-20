@@ -1,9 +1,14 @@
-const { MongoMemoryServer } = require('mongodb-memory-server');
-const mongodb = new MongoMemoryServer();
 const mongoose = require('mongoose');
 
 module.exports.connect = async () => {
-    const uri = process.env.NODE_ENV === 'test' ? await mongodb.getUri() : process.env.MONGO_URI;
+    var uri;
+    if(process.env.NODE_ENV === 'test'){
+        const { MongoMemoryServer } = require('mongodb-memory-server');
+        const mongodb = new MongoMemoryServer();
+        uri = await mongodb.getUri()
+    }else{
+        uri = process.env.MONGO_URI
+    }
 
     const mongooseOpts = {
         useNewUrlParser: true,

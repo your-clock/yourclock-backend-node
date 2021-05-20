@@ -1,7 +1,7 @@
 const http = require('./app')
 const socketio = require('./config/socket-config')
 require('./config/redis-config')
-const port = 3000 || process.env.PORT;
+const port = process.env.PORT || 3000;
 
 socketio.on("connection", socket => {
 	console.log(`Usuario ${socket.id} conectado por socket`)

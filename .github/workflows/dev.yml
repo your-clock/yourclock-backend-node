@@ -2,7 +2,7 @@ name: building-and-deployment-dev
 
 on:
   push:
-    branches: [dev, david, feature/*]
+    branches: [dev, feature/*, fix/*]
   workflow_dispatch:
 
 env:

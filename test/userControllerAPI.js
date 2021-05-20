@@ -1,7 +1,6 @@
 const server = require("../server");
 const chai = require('chai');
 const chaiHttp = require('chai-http');
-const mockDB = require('../config/connectdb');
 
 chai.should();
 chai.use(chaiHttp);
@@ -10,10 +9,6 @@ const testEmail = "prueba123@correo.com"
 const msgEmailInnexist = 'Correo no existente, verifique la informacion'
 
 describe('Controlador api de usuarios', () => {
-
-    before(() => {
-        return mockDB.connect()
-    });
 
     it('POST /login success', (done) => {
         chai.request(server)

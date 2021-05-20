@@ -1,7 +1,6 @@
 const server = require("../server");
 const chai = require('chai');
 const chaiHttp = require('chai-http');
-const mockDB = require('../config/connectdb');
 
 chai.should();
 chai.use(chaiHttp);
@@ -11,10 +10,6 @@ const dataToken = {
 }
 
 describe('Controlador api de token', () => {
-
-    before(() => {
-        return mockDB.connect()
-    });
 
     it('POST /createtoken', (done) => {
         chai.request(server)

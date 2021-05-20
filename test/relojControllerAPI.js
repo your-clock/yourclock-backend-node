@@ -1,16 +1,11 @@
 const server = require("../server");
 const chai = require('chai');
 const chaiHttp = require('chai-http');
-const mockDB = require('../config/connectdb');
 
 chai.should();
 chai.use(chaiHttp);
 
 describe('Controlador api de reloj', () => {
-
-    before(() => {
-        return mockDB.connect()
-    });
 
     it('POST /datos', (done) => {
         chai.request(server)

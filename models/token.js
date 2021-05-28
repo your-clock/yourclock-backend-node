@@ -24,7 +24,7 @@ function verifyToken(token){
     })
 }
 
-async function createToken(tokenData){
+function createToken(tokenData){
     return new Promise((resolve, reject) => {
         const payload = {
             uuid: uuidv4()
@@ -47,7 +47,7 @@ async function createToken(tokenData){
     })
 }
 
-async function updateToken(tokenReq){
+function updateToken(tokenReq){
     return new Promise((resolve, reject) => {
         const decode = jwt.verify(tokenReq, process.env.KEY_TOKEN)
         redis.GET(decode.uuid, (errRedis, result) => {

@@ -155,19 +155,19 @@ schemaUsers.statics.sendEmailToUser = async function sendEmailToUser(mailOptions
             throw err
 		}
 		mailOptions.html = html
-	})
-    transporter.sendMail(mailOptions, function(errorSend){
-        transporter.close();
-		if(errorSend){
-            const err = new Error('Error al enviar el email')
-            err.body = {
-                msg: "Error al enviar el email, intenta mas tarde",
-                code: 304,
-                info: error
+        transporter.sendMail(mailOptions, function(errorSend, infoSend){
+            transporter.close();
+            if(errorSend){
+                const err = new Error('Error al enviar el email')
+                err.body = {
+                    msg: "Error al enviar el email, intenta mas tarde",
+                    code: 304,
+                    info: error
+                }
+                err.statusCode = 500
+                throw err;
             }
-            err.statusCode = 500
-            throw err;
-		}
+        })
 	})
 }
 

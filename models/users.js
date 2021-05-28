@@ -67,40 +67,47 @@ const error400 = {
 }
 
 schemaUsers.statics.validateBody = function validateBody(body, schema) {
-    const {error} = schema.validate(body);
-    if(error){
-        const err = new Error('Error al validar el body')
-        err.body = {
-            errorDetail: error.details[0].message,
-            errorKey: error.details[0].context.key,
-            code: 306,
-            msg: `Por favor revise su ${error.details[0].context.key}`
+    return new Promise((resolve, reject) => {
+        const {error} = schema.validate(body);
+        if(error){
+            reject({
+                body: {
+                    errorDetail: error.details[0].message,
+                    errorKey: error.details[0].context.key,
+                    code: 306,
+                    msg: `Por favor revise su ${error.details[0].context.key}`
+                },
+                statusCode: 400
+            })
+        }else{
+            resolve("Esquema valido")
         }
-        err.statusCode = 400
-        throw err;
-    }
+    });
 }
 
 schemaUsers.statics.findByEmail = async function(email, needUserExist){
     const result = await this.find({correo: email})
-    if(needUserExist && !result[0]){
-        const err = new Error('Correo no existente')
-        err.body = {
-            msg: "Correo no existente, verifique la informacion",
-            code: 304
+    return new Promise((resolve, reject) => {
+        if(needUserExist && !result[0]){
+            const err = new Error('Correo no existente')
+            err.body = {
+                msg: "Correo no existente, verifique la informacion",
+                code: 304
+            }
+            err.statusCode = 400
+            reject(err);
+        }else if(!needUserExist && result[0]){
+            const err = new Error('El correo ya existe')
+            err.body = {
+                msg: "Usuario ya existente, verifique la informacion",
+                code: 304
+            }
+            err.statusCode = 400
+            reject(err);
+        }else{
+            resolve(result[0]);
         }
-        err.statusCode = 400
-        throw err
-    }else if(!needUserExist && result[0]){
-        const err = new Error('El correo ya existe')
-        err.body = {
-            msg: "Usuario ya existente, verifique la informacion",
-            code: 304
-        }
-        err.statusCode = 400
-        throw err;
-    }
-    return result[0]
+    });
 }
 
 schemaUsers.statics.updateStateByEmail = async function(email, state) {

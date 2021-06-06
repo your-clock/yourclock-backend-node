@@ -1,5 +1,5 @@
 const http = require('../app')
-const socketio = require('socket.io')(http, {
+const sockets = require('socket.io')(http, {
     cors: {
         origin: process.env.HOST_FRONT,
         methods: ["GET", "POST"],
@@ -9,4 +9,4 @@ const socketio = require('socket.io')(http, {
     allowEIO3: true
 })
 
-module.exports = socketio
+module.exports = sockets

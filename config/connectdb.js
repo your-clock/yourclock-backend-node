@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 module.exports.connect = async () => {
-    var uri;
+    let uri;
     if(process.env.NODE_ENV === 'test'){
         const { MongoMemoryServer } = require('mongodb-memory-server');
         const mongodb = new MongoMemoryServer();
@@ -17,9 +17,9 @@ module.exports.connect = async () => {
 
     await mongoose.connect(uri, mongooseOpts, function (err) {
         if (err) {
-            console.log(`Error conectando a Atlas: ${err}`);
+            console.log(`Error connecting to Atlas: ${err}`);
         } else {
-            console.log(`Connected to Atlas in enviroment: ${process.env.NODE_ENV}`);
+            console.log(`Connected to Atlas in environment: ${process.env.NODE_ENV}`);
         }
     });
 }

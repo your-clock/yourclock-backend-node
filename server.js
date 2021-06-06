@@ -1,13 +1,13 @@
 const http = require('./app')
-const socketio = require('./config/socket-config')
+const sockets = require('./config/socket-config')
 require('./config/redis-config')
 const port = process.env.PORT || 3000;
 
-socketio.on("connection", socket => {
-	console.log(`Usuario ${socket.id} conectado por socket`)
+sockets.on("connection", socket => {
+	console.log(`User ${socket.id} connected by socket`)
     socket.on("setDevice", deviceId => {
         socket.join(deviceId)
-        console.log(`Usuario ${socket.id} conectado al dispositivo ${deviceId}`);
+        console.log(`User ${socket.id} connected to device ${deviceId}`);
     })
     module.exports = socket;
 })

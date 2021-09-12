@@ -2,8 +2,8 @@ const mongoose = require('mongoose');
 const { google } = require('googleapis');
 const crypto = require('crypto-js');
 const EmailTemplates = require('swig-email-templates');
-const transporter = require('../config/email')
 const Schema = mongoose.Schema;
+const { EmailService } = require('@your-clock/yourclock-common-utils-lib')
 
 const schemaUsers = new Schema({
 	correo: {
@@ -150,7 +150,7 @@ schemaUsers.statics.updatePasswordById = async function(credentials) {
 
 schemaUsers.statics.sendEmailToUser = async function sendEmailToUser(mailOptions, plantilla, datos){
     const templates = new EmailTemplates();
-	templates.render(plantilla, datos, function(error, html) {
+	templates.render(plantilla, datos, async function(error, html) {
 		if(error){
             const err = new Error('Error con el template')
 			err.body = {
@@ -162,19 +162,7 @@ schemaUsers.statics.sendEmailToUser = async function sendEmailToUser(mailOptions
             throw err
 		}
 		mailOptions.html = html
-        transporter.sendMail(mailOptions, function(errorSend, infoSend){
-            transporter.close();
-            if(errorSend){
-                const err = new Error('Error al enviar el email')
-                err.body = {
-                    msg: "Error al enviar el email, intenta mas tarde",
-                    code: 304,
-                    info: error
-                }
-                err.statusCode = 500
-                throw err;
-            }
-        })
+        await EmailService.send(mailOptions);
 	})
 }
 

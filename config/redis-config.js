@@ -1,3 +1,7 @@
+const debugLib = require('debug')
+
+const logger = debugLib('yck:startRedis')
+
 var client;
 if(process.env.NODE_ENV === "test"){
     const redis = require("redis-mock")
@@ -12,19 +16,19 @@ if(process.env.NODE_ENV === "test"){
 }
 
 client.on('connect', () => {
-    console.log('Client connected to redis.');
+    logger('Client connected to redis.');
 })
 
 client.on('ready', () => {
-    console.log('Client connected to redis and ready to use.');
+    logger('Client connected to redis and ready to use.');
 })
 
 client.on('error', (err) => {
-    console.log('Error in Redis: '+err.message);
+    logger('Error in Redis: %o', err.message);
 })
 
 client.on('end', () => {
-    console.log('Client disconnected from redis.');
+    logger('Client disconnected from redis.');
 })
 
 process.on('SIGNINT', () => {

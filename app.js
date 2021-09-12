@@ -9,10 +9,11 @@ const cookieParser = require('cookie-parser');
 const session = require('express-session');
 const database = require('./config/connectdb');
 const mongoDBStore = require('connect-mongodb-session')(session);
+const { EmailService } = require('@your-clock/yourclock-common-utils-lib');
 const assert = require('assert').strict;
 require('dotenv').config();
 
-app.use(morgan('tiny'));
+app.use(morgan('dev'));
 app.use(cors({
 	origin: process.env.HOST_FRONT,
 	credentials: true
@@ -32,19 +33,35 @@ app.use('/google030be2b97e367ddd', function(req, res){
 
 let store;
 if(process.env.NODE_ENV === 'development' || 'test'){
-  store = new session.MemoryStore;
+    store = new session.MemoryStore;
 }else{
-  store = new mongoDBStore({
-    uri: process.env.MONGO_URI,
-    collection: 'sessions'
-  });
-  store.on('error', function(error){
-    assert.ifError(error);
-    assert.ok(false);
-  });
+    store = new mongoDBStore({
+        uri: process.env.MONGO_URI,
+        collection: 'sessions'
+    });
+    store.on('error', function(error){
+        assert.ifError(error);
+        assert.ok(false);
+    });
 }
 
 database.connect();
+
+EmailService.set({
+    environment: process.env.NODE_ENV,
+    etherealEmail: {
+        etherealHost: process.env.ETHEREAL_HOST,
+        etherealPort: process.env.ETHEREAL_PORT,
+        etherealPwd: process.env.ETHEREAL_PWD,
+        etherealUser: process.env.ETHEREAL_USER
+    },
+    googleEmail: {
+        idEmail: process.env.ID_EMAIL,
+        secretEmail: process.env.SECRET_EMAIL,
+        tokenEmail: process.env.TOKEN_EMAIL,
+        userEmail: process.env.USER_EMAIL
+    }
+});
 
 app.use(session({
 	cookie: { maxAge: 240 * 60 * 60 * 1000},

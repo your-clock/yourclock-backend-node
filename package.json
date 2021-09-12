@@ -1,12 +1,12 @@
 {
   "name": "your-clock",
-  "version": "1.0.3",
+  "version": "1.0.5",
   "description": "Backend de la pagina de Your-clock hecho en NodeJS",
   "main": "server.js",
   "scripts": {
-    "start": "babel-node server.js --exec",
-    "start:dev": "nodemon server.js --exec babel-node",
-    "test": "cross-env NODE_ENV=test mocha --timeout 10000",
+    "start": "DEBUG=yck:* node server.js",
+    "start:dev": "DEBUG=yck:* DEBUG_COLORS=false nodemon server.js",
+    "test": "cross-env NODE_ENV=test mocha --timeout 10000 --exit",
     "test:coverage": "cross-env NODE_ENV=test nyc --reporter=lcov mocha --timeout 10000 --exit"
   },
   "keywords": [],
@@ -17,6 +17,7 @@
     "@babel/core": "^7.7.5",
     "@babel/node": "^7.7.4",
     "@babel/preset-env": "^7.7.6",
+    "@your-clock/yourclock-common-utils-lib": "^0.0.1",
     "axios": "^0.21.1",
     "connect-history-api-fallback": "^1.6.0",
     "connect-mongodb-session": "^2.4.1",
@@ -24,6 +25,7 @@
     "cors": "^2.8.5",
     "cross-env": "^7.0.3",
     "crypto-js": "^3.1.9-1",
+    "debug": "^2.6.9",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
     "express-session": "^1.17.1",
@@ -38,7 +40,8 @@
     "redis": "^3.0.2",
     "socket.io": "^3.1.2",
     "swig-email-templates": "^5.0.1",
-    "uuid": "^8.3.2"
+    "uuid": "^8.3.2",
+    "winston": "^3.3.3"
   },
   "devDependencies": {
     "chai": "^4.3.4",

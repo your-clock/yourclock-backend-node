@@ -1,6 +1,6 @@
 .env
 node_modules
-/src/controller/api/doc
+*/controller/api/doc
 .DS_store
 /coverage
 /.nyc_output

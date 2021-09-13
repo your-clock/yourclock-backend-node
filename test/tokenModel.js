@@ -1,4 +1,4 @@
-const tokenModel = require('../models/token')
+const tokenModel = require('../src/services/token')
 const chai = require('chai');
 var tokenTest;
 

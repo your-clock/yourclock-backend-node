@@ -1,11 +1,11 @@
 {
   "name": "your-clock",
-  "version": "1.0.5",
+  "version": "1.1.0",
   "description": "Backend de la pagina de Your-clock hecho en NodeJS",
-  "main": "server.js",
+  "main": "src/server.js",
   "scripts": {
-    "start": "DEBUG=yck:* node server.js",
-    "start:dev": "DEBUG=yck:* DEBUG_COLORS=false nodemon server.js",
+    "start": "DEBUG=yck:* node src/server.js",
+    "start:dev": "DEBUG=yck:* DEBUG_COLORS=false nodemon src/server.js",
     "test": "cross-env NODE_ENV=test mocha --timeout 10000 --exit",
     "test:coverage": "cross-env NODE_ENV=test nyc --reporter=lcov mocha --timeout 10000 --exit"
   },
@@ -17,7 +17,7 @@
     "@babel/core": "^7.7.5",
     "@babel/node": "^7.7.4",
     "@babel/preset-env": "^7.7.6",
-    "@your-clock/yourclock-common-utils-lib": "^0.0.1",
+    "@your-clock/yourclock-common-utils-lib": "^0.0.2",
     "axios": "^0.21.1",
     "connect-history-api-fallback": "^1.6.0",
     "connect-mongodb-session": "^2.4.1",
@@ -48,7 +48,7 @@
     "chai-http": "^4.3.0",
     "mocha": "^8.3.2",
     "mongodb-memory-server": "^6.9.6",
-    "nodemon": "^2.0.7",
+    "nodemon": "^2.0.12",
     "nyc": "^15.1.0",
     "redis-mock": "^0.56.3",
     "socket.io-mock": "^1.3.1"

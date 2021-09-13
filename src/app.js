@@ -48,7 +48,7 @@ if(process.env.NODE_ENV === 'development' || 'test'){
 database.connect();
 
 EmailService.set({
-    environment: process.env.NODE_ENV,
+    environment: process.env.NODE_ENV === "production" ? "google" : "ethereal",
     etherealEmail: {
         etherealHost: process.env.ETHEREAL_HOST,
         etherealPort: process.env.ETHEREAL_PORT,

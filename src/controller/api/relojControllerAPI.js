@@ -1,4 +1,4 @@
-const relojModel = require('../../models/reloj')
+const relojModel = require('../../services/reloj')
 
 exports.setData = async (req, res) => {
 	try {

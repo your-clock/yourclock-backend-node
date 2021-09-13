@@ -1,4 +1,4 @@
-const Auth = require('../../models/users');
+const Auth = require('../../services/users');
 const joi = require('joi')
 const path = require('path');
 
@@ -101,7 +101,7 @@ exports.userLogin = async (req, res) => {
             to: req.body.mail,
             subject: 'Verificacion cuenta en Your Clock'
         }
-        var plantilla = path.join(__dirname, '../..', 'views/verification.html')
+        var plantilla = path.join(__dirname, '../../..', 'views/verification.html')
         var datos = {
             nombre: req.body.name1,
             apellido: req.body.lastName1,
@@ -363,7 +363,7 @@ exports.forgotPasswordUser = async (req, res) => {
             to: req.body.mail,
             subject: 'Cambio de contraseña en Your Clock'
         };
-        var plantilla = path.join(__dirname, '../..', 'views/forgotPassword.html')
+        var plantilla = path.join(__dirname, '../../..', 'views/forgotPassword.html')
         var datos = {
             nombre: result.nombre1,
             id: Buffer.from(result._id.toString()).toString('base64'),

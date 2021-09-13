@@ -1,4 +1,4 @@
-const server = require("../server");
+const server = require("../src/server");
 const chai = require('chai');
 const chaiHttp = require('chai-http');
 

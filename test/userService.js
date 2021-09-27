@@ -1,28 +1,28 @@
-const userModel = require('../src/services/users')
+const userService = require('../src/services/users')
 const chai = require('chai');
 const path = require('path');
 
 chai.should();
 
-describe('Modelos de usuarios', () => {
+describe('Services de usuarios', () => {
 
-    it('model updateStateByEmail failed', async () => {
+    it('service updateStateByEmail failed', async () => {
         try {
-            await userModel.updateStateByEmail("prueba@correo.com", true);
+            await userService.updateStateByEmail("prueba@correo.com", true);
         } catch (error) {
             error.body.should.be.a('object')
         }
     });
 
-    it('model updateStateByEmail', async () => {
+    it('service updateStateByEmail', async () => {
         try {
-            await userModel.updateStateByEmail("prueba@correo.com", false);
+            await userService.updateStateByEmail("prueba@correo.com", false);
         } catch (error) {
             error.body.should.be.a('object')
         }
     });
 
-    it('model sendEmailToUser', async () => {
+    it('service sendEmailToUser', async () => {
         var mailOptions = {
             from: 'yourclocknoreply@gmail.com',
             to: "prueba@correo.com",
@@ -34,10 +34,10 @@ describe('Modelos de usuarios', () => {
             id: "123erfgbgr43rgr4efgfe3fg",
             base_url: "http://localhost:8080"
         }
-        await userModel.sendEmailToUser(mailOptions, plantilla, datos);
+        await userService.sendEmailToUser(mailOptions, plantilla, datos);
     });
 
-    it('model sendEmailToUser failed', async () => {
+    it('service sendEmailToUser failed', async () => {
         try{
             var mailOptions = {
                 from: 'yourclocknoreply@gmail.com',
@@ -50,14 +50,14 @@ describe('Modelos de usuarios', () => {
                 id: "123erfgbgr43rgr4efgfe3fg",
                 base_url: "http://localhost:8080"
             }
-            await userModel.sendEmailToUser(mailOptions, plantilla, datos);
+            await userService.sendEmailToUser(mailOptions, plantilla, datos);
         } catch (error) {
             error.body.should.be.a('object')
         }
     });
-    it('model authenticateUser failed', async () => {
+    it('service authenticateUser failed', async () => {
         try{
-            await userModel.authenticateUser(true, "123456", "123456");
+            await userService.authenticateUser(true, "123456", "123456");
         } catch (error) {
             error.body.should.be.a('object')
         }

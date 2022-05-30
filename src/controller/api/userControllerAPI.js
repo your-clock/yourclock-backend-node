@@ -103,8 +103,7 @@ exports.userLogin = async (req, res) => {
         }
         var plantilla = path.join(__dirname, '../../..', 'views/verification.html')
         var datos = {
-            nombre: req.body.name1,
-            apellido: req.body.lastName1,
+            nombre: req.body.name,
             email: Buffer.from(req.body.mail).toString('base64'),
             base_url: process.env.HOST_FRONT
         }

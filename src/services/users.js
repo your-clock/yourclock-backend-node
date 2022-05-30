@@ -18,27 +18,9 @@ const schemaUsers = new Schema({
         max: 1024,
         min: 8
     },
-    nombre1: {
+    nombre: {
         type: String,
         required: true,
-        max: 255,
-        min: 1
-    },
-    nombre2: {
-        type: String,
-        required: false,
-        max: 255,
-        min: 1
-    },
-    apellido1: {
-        type: String,
-        required: true,
-        max: 255,
-        min: 1
-    },
-    apellido2: {
-        type: String,
-        required: false,
         max: 255,
         min: 1
     },
@@ -195,10 +177,7 @@ schemaUsers.statics.createUser = async function createUser(userInfo){
     const payload = {
         correo: userInfo.mail,
         password: contraHASH,
-        nombre1: userInfo.name1,
-        nombre2: userInfo.name2,
-        apellido1: userInfo.lastName1,
-        apellido2: userInfo.lastName2,
+        nombre: userInfo.name,
         ciudad: userInfo.city,
         estado: false,
         fecha: new Date()
@@ -254,8 +233,7 @@ schemaUsers.statics.findOneOrCreateByGoogle = async function(condition, callback
             const values = {
                 googleId: condition.profile.id,
                 correo: condition.profile.emails[0].value,
-                nombre1: condition.profile._json.given_name || 'SIN NOMBRE',
-                apellido1: condition.profile._json.family_name || 'SIN APELLIDO',
+                nombre: `${condition.profile._json.given_name} ${condition.profile._json.family_name}`,
                 ciudad: "NOT FOUND",
                 fecha: new Date(),
                 estado: true,

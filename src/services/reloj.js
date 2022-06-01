@@ -1,4 +1,6 @@
 const axios = require('axios');
+const debugLib = require('debug');
+const logger = debugLib('yck:relojService');
 
 function emitData(data, deviceId) {
     return new Promise((resolve, reject) => {

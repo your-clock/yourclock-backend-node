@@ -24,6 +24,7 @@ jobs:
       ETHEREAL_PWD: ${{ secrets.ETHEREAL_PWD }}
       ETHEREAL_USER: ${{ secrets.ETHEREAL_USER }}
       SECRET_SESSION: ${{ secrets.SECRET_SESSION }}
+      PACKAGE_TOKEN: ${{ secrets.PACKAGE_TOKEN }}
     steps:
       - uses: actions/checkout@v2
         with:
@@ -59,10 +60,6 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-      with:
-        args: >
-          -Dsonar.branch.target=${{ env.branch_default }}
-          -Dsonar.branch.name=${{ env.branch_default }}
     - name: SonarCloud Verify results
       shell: bash
       run: |

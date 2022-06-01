@@ -1,6 +1,8 @@
-const jwt = require('jsonwebtoken')
-const redis = require('../config/redis-config')
+const jwt = require('jsonwebtoken');
+const redis = require('../config/redis-config');
 const { v4: uuidv4 } = require('uuid');
+const debugLib = require('debug');
+const logger = debugLib('yck:tokenService');
 
 function verifyToken(token){
     return new Promise((resolve, reject) => {

@@ -2,8 +2,10 @@ const mongoose = require('mongoose');
 const { google } = require('googleapis');
 const crypto = require('crypto-js');
 const EmailTemplates = require('swig-email-templates');
-const transporter = require('../config/email')
 const Schema = mongoose.Schema;
+const { EmailService } = require('@your-clock/yourclock-common-utils-lib');
+const debugLib = require('debug');
+const logger = debugLib('yck:userService');
 
 const schemaUsers = new Schema({
 	correo: {
@@ -18,27 +20,9 @@ const schemaUsers = new Schema({
         max: 1024,
         min: 8
     },
-    nombre1: {
+    nombre: {
         type: String,
         required: true,
-        max: 255,
-        min: 1
-    },
-    nombre2: {
-        type: String,
-        required: false,
-        max: 255,
-        min: 1
-    },
-    apellido1: {
-        type: String,
-        required: true,
-        max: 255,
-        min: 1
-    },
-    apellido2: {
-        type: String,
-        required: false,
         max: 255,
         min: 1
     },
@@ -70,11 +54,12 @@ schemaUsers.statics.validateBody = function validateBody(body, schema) {
     return new Promise((resolve, reject) => {
         const {error} = schema.validate(body);
         if(error){
+            logger(`Error validando body: ${error}`);
             reject({
                 body: {
                     errorDetail: error.details[0].message,
                     errorKey: error.details[0].context.key,
-                    code: 306,
+                    code: 301,
                     msg: `Por favor revise su ${error.details[0].context.key}`
                 },
                 statusCode: 400
@@ -89,20 +74,22 @@ schemaUsers.statics.findByEmail = async function(email, needUserExist){
     const result = await this.find({correo: email})
     return new Promise((resolve, reject) => {
         if(needUserExist && !result[0]){
-            const err = new Error('Correo no existente')
+            const err = new Error('Correo no existente');
             err.body = {
                 msg: "Correo no existente, verifique la informacion",
-                code: 304
+                code: 302
             }
             err.statusCode = 400
+            logger(`Correo no existente: ${err}`);
             reject(err);
         }else if(!needUserExist && result[0]){
-            const err = new Error('El correo ya existe')
+            const err = new Error('El correo ya existe');
             err.body = {
                 msg: "Usuario ya existente, verifique la informacion",
-                code: 304
+                code: 305
             }
             err.statusCode = 400
+            logger(`Correo ya existente: ${err}`);
             reject(err);
         }else{
             resolve(result[0]);
@@ -114,7 +101,7 @@ schemaUsers.statics.updateStateByEmail = async function(email, state) {
     if(state){
         const err = new Error('Verificacion ya realizada')
         err.body = {
-            code: 309,
+            code: 311,
             msg: "verificacion ya realizada"
         }
         err.statusCode = 400
@@ -124,10 +111,10 @@ schemaUsers.statics.updateStateByEmail = async function(email, state) {
         if(result.nModified === 0){
             const err = new Error('Actualizacion no realizada')
             err.body = {
-                code: 309,
+                code: 312,
                 msg: "Actualizacion no realizada en base de datos"
             }
-            err.statusCode = 400
+            err.statusCode = 500
             throw err;
         }
     }
@@ -140,62 +127,53 @@ schemaUsers.statics.updatePasswordById = async function(credentials) {
     if(result.nModified === 0){
         const err = new Error('Actualizacion no realizada')
         err.body = {
-            code: 309,
+            code: 315,
             msg: "Actualizacion no realizada en base de datos"
         }
-        err.statusCode = 400
+        err.statusCode = 500
         throw err;
     }
 }
 
 schemaUsers.statics.sendEmailToUser = async function sendEmailToUser(mailOptions, plantilla, datos){
     const templates = new EmailTemplates();
-	templates.render(plantilla, datos, function(error, html) {
+	templates.render(plantilla, datos, async function(error, html) {
 		if(error){
             const err = new Error('Error con el template')
 			err.body = {
                 msg: "Error al generar plantilla de correo",
                 info: err,
-                code: 304
+                code: 306
             }
             err.statusCode = 500
             throw err
 		}
 		mailOptions.html = html
-        transporter.sendMail(mailOptions, function(errorSend, infoSend){
-            transporter.close();
-            if(errorSend){
-                const err = new Error('Error al enviar el email')
-                err.body = {
-                    msg: "Error al enviar el email, intenta mas tarde",
-                    code: 304,
-                    info: error
-                }
-                err.statusCode = 500
-                throw err;
-            }
-        })
+        await EmailService.send(mailOptions);
 	})
 }
 
 schemaUsers.statics.authenticateUser = function authenticateUser(state, passwordDB, passwordUser){
     if(!state){
-        const err = new Error('Usuario no verificado')
+        const err = new Error('Usuario no verificado');
         err.body = {
             msg: "Por favor verifique su cuenta para continuar",
-            code: 308
+            code: 304
         }
         err.statusCode = 400
+        logger(`cuenta no verificada: ${err}`);
         throw err;
     }else{
-        const passwordHASH = crypto.HmacSHA1(passwordUser, process.env.KEY_SHA1).toString(crypto.enc.Hex)
+        const passwordHASH = crypto.HmacSHA1(passwordUser, process.env.KEY_SHA1).toString(crypto.enc.Hex);
+        console.log(passwordHASH)
         if(passwordHASH !== passwordDB){
             const err = new Error('Usuario no autenticado')
             err.body = {
                 msg: "contrasena incorrecta, intentelo de nuevo",
-                code: 306
+                code: 303
             }
             err.statusCode = 400
+            logger(`contraseña incorrecta: ${err}`);
             throw err;
         }
     }
@@ -207,10 +185,7 @@ schemaUsers.statics.createUser = async function createUser(userInfo){
     const payload = {
         correo: userInfo.mail,
         password: contraHASH,
-        nombre1: userInfo.name1,
-        nombre2: userInfo.name2,
-        apellido1: userInfo.lastName1,
-        apellido2: userInfo.lastName2,
+        nombre: userInfo.name,
         ciudad: userInfo.city,
         estado: false,
         fecha: new Date()
@@ -220,7 +195,7 @@ schemaUsers.statics.createUser = async function createUser(userInfo){
         const err = new Error('Error al crear el usuario')
         err.body = {
             msg: "Error al crear el usuario en base de datos",
-            code: 304,
+            code: 307,
             info: error
         }
         err.statusCode = 500
@@ -234,7 +209,7 @@ schemaUsers.statics.deleteUser = async function(email) {
         const err = new Error('Usuario no existe')
         err.body = {
             msg: "Usuario no existe en base de datos",
-            code: 305
+            code: 309
         }
         err.statusCode = 400
         throw err;
@@ -266,8 +241,7 @@ schemaUsers.statics.findOneOrCreateByGoogle = async function(condition, callback
             const values = {
                 googleId: condition.profile.id,
                 correo: condition.profile.emails[0].value,
-                nombre1: condition.profile._json.given_name || 'SIN NOMBRE',
-                apellido1: condition.profile._json.family_name || 'SIN APELLIDO',
+                nombre: `${condition.profile._json.given_name} ${condition.profile._json.family_name}`,
                 ciudad: "NOT FOUND",
                 fecha: new Date(),
                 estado: true,

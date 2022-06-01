@@ -1,4 +1,4 @@
-const server = require("../server");
+const server = require("../src/server");
 const chai = require('chai');
 const chaiHttp = require('chai-http');
 
@@ -16,10 +16,7 @@ describe('Controlador api de usuarios', () => {
             .send({
                 "mail": testEmail,
                 "pass": "P4sSW0rD*",
-                "name1": "Usuario",
-                "name2": "Prueba",
-                "lastName1": "Tests",
-                "lastName2": "Unitarios",
+                "name": "Usuario prueba test unitarios",
                 "city": "Bogota"
             })
             .end((err, res) => {
@@ -29,7 +26,7 @@ describe('Controlador api de usuarios', () => {
                 res.should.have.status(201)
                 res.body.should.be.a('object')
                 res.body.should.have.property('msg').eq('Usuario registrado correctamente, verifique su correo para autenticar su cuenta')
-                res.body.should.have.property('code').eq(300)
+                res.body.should.have.property('code').eq(308)
                 done();
             })
     });
@@ -40,10 +37,7 @@ describe('Controlador api de usuarios', () => {
             .send({
                 "mail": testEmail,
                 "pass": "123",
-                "name1": "Usuario",
-                "name2": "Pruebas",
-                "lastName1": "Tests",
-                "lastName2": "Unitarios",
+                "name": "Usuario prueba test unitarios",
                 "city": "Bogota"
             })
             .end((err, res) => {
@@ -55,7 +49,7 @@ describe('Controlador api de usuarios', () => {
                 res.body.should.have.property('msg').eq('Por favor revise su pass')
                 res.body.should.have.property('errorDetail').eq('"pass" length must be at least 8 characters long')
                 res.body.should.have.property('errorKey').eq('pass')
-                res.body.should.have.property('code').eq(306)
+                res.body.should.have.property('code').eq(301)
                 done();
             })
     });
@@ -74,7 +68,7 @@ describe('Controlador api de usuarios', () => {
                 res.should.have.status(400)
                 res.body.should.be.a('object')
                 res.body.should.have.property('msg').eq('Por favor verifique su cuenta para continuar')
-                res.body.should.have.property('code').eq(308)
+                res.body.should.have.property('code').eq(304)
                 done();
             })
     });
@@ -92,7 +86,7 @@ describe('Controlador api de usuarios', () => {
                 res.should.have.status(400)
                 res.body.should.be.a('object')
                 res.body.should.have.property('msg').eq(msgEmailInnexist)
-                res.body.should.have.property('code').eq(304)
+                res.body.should.have.property('code').eq(302)
                 done();
             })
     });
@@ -110,7 +104,7 @@ describe('Controlador api de usuarios', () => {
                 res.should.have.status(400)
                 res.body.should.be.a('object')
                 res.body.should.have.property('msg').eq('Usuario no existe en base de datos')
-                res.body.should.have.property('code').eq(305)
+                res.body.should.have.property('code').eq(309)
                 done();
             })
     });
@@ -128,7 +122,7 @@ describe('Controlador api de usuarios', () => {
                 res.should.have.status(200)
                 res.body.should.be.a('object')
                 res.body.should.have.property('msg').eq('Mensaje enviado exitosamente, verifique su correo para cambiar su contraseña')
-                res.body.should.have.property('code').eq(300)
+                res.body.should.have.property('code').eq(314)
                 done();
             })
     });
@@ -148,7 +142,7 @@ describe('Controlador api de usuarios', () => {
                 res.body.should.have.property('msg').eq('Por favor revise su mail')
                 res.body.should.have.property('errorDetail').eq('"mail" must be a valid email')
                 res.body.should.have.property('errorKey').eq('mail')
-                res.body.should.have.property('code').eq(306)
+                res.body.should.have.property('code').eq(301)
                 done();
             })
     });
@@ -164,10 +158,10 @@ describe('Controlador api de usuarios', () => {
                 if(err){
                     throw err;
                 }
-                res.should.have.status(400)
+                res.should.have.status(500)
                 res.body.should.be.a('object')
                 res.body.should.have.property('msg').eq('Actualizacion no realizada en base de datos')
-                res.body.should.have.property('code').eq(309)
+                res.body.should.have.property('code').eq(315)
                 done();
             })
     });

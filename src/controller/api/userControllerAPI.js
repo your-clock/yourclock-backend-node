@@ -1,12 +1,11 @@
-const Auth = require('../../models/users');
+const Auth = require('../../services/users');
 const joi = require('joi')
 const path = require('path');
+const debugLib = require('debug');
+const logger = debugLib('yck:userController');
 
 const schemaLogin = joi.object({
-    name1: joi.string().min(1).required(),
-    name2: joi.string().min(1).allow(""),
-    lastName1: joi.string().min(1).required(),
-    lastName2: joi.string().min(1).allow(""),
+    name: joi.string().min(4).required(),
     mail: joi.string().min(6).required().email(),
     pass: joi.string().min(8).required(),
     city: joi.string().min(1).required(),
@@ -40,20 +39,14 @@ const error400 = {
 *
 *@apiParam{String} mail Correo del usuario a registrar
 *@apiParam{String{min. 8}} pass Contraseña del usuario a registrar
-*@apiParam{String} name1 Primer nombre del usuario a registrar
-*@apiParam{String} [name2] Segundo nombre del usuario a registrar
-*@apiParam{String} lastName1 Primer apellido del usuario a registrar
-*@apiParam{String} [lastName2] Segundo apellido del usuario a registrar
+*@apiParam{String} name Nombre completo del usuario a registrar
 *@apiParam{String} city Ciudad del usuario a registrar
 *
 *@apiParamExample {json} JSON de ejemplo
 * {
 *    "mail": "ejemplo@tudominio.com",
 *    "pass": "H0l4Mund0",
-*    "name1": "Erney",
-*    "name2": "David",
-*    "lastName1": "Garcia",
-*    "lastName2": "Vergara",
+*    "name": "Erney David Garcia Vergara"
 *    "city": "Bogota"
 * }
 *
@@ -100,20 +93,19 @@ exports.userLogin = async (req, res) => {
             from: 'no-reply@yourclock-app.com',
             to: req.body.mail,
             subject: 'Verificacion cuenta en Your Clock'
-        }
-        var plantilla = path.join(__dirname, '../..', 'views/verification.html')
+        };
+        var plantilla = path.join(__dirname, '../../..', 'views/verification.html');
         var datos = {
-            nombre: req.body.name1,
-            apellido: req.body.lastName1,
+            nombre: req.body.name,
             email: Buffer.from(req.body.mail).toString('base64'),
             base_url: process.env.HOST_FRONT
-        }
+        };
         await Auth.sendEmailToUser(mailOptions, plantilla, datos);
         await Auth.createUser(req.body);
         return res.status(201).json({
             msg: "Usuario registrado correctamente, verifique su correo para autenticar su cuenta",
-            code: 300
-        })
+            code: 308
+        });
     }catch(error){
         return res.status(error.statusCode || 500).send(error.body || error.toString())
     }
@@ -187,12 +179,13 @@ exports.authUser = async (req, res) => {
             code: 300,
             msg: "Usuario autenticado exitosamente",
             infoClient: {
-                nombre: Buffer.from(result.nombre1).toString('base64'),
+                nombre: Buffer.from(result.nombre).toString('base64'),
                 correo: Buffer.from(result.correo).toString('base64'),
                 id: Buffer.from(result._id.toString()).toString('base64')
             }
         })
     } catch (error) {
+        logger(`Error: ${error}`);
         return res.status(error.statusCode || 500).send(error.body || error.toString())
     }
 }
@@ -246,7 +239,7 @@ exports.deleteUser = async (req, res) => {
         await Auth.deleteUser(req.body.mail)
         return res.status(200).json({
             msg: "Su cuenta ha sido eliminada correctamente.",
-            code: 311
+            code: 310
         })
     } catch (error) {
         return res.status(error.statusCode || 500).send(error.body || error.toString())
@@ -302,7 +295,7 @@ exports.verifyUser = async (req, res) => {
         const result = await Auth.findByEmail(Buffer.from(req.body.mail, 'base64').toString('ascii'), true)
         await Auth.updateStateByEmail(result.correo, result.estado)
         return res.status(200).json({
-            code: 310,
+            code: 313,
             msg: "estado actualizado correctamente"
         })
     } catch (error) {
@@ -363,7 +356,7 @@ exports.forgotPasswordUser = async (req, res) => {
             to: req.body.mail,
             subject: 'Cambio de contraseña en Your Clock'
         };
-        var plantilla = path.join(__dirname, '../..', 'views/forgotPassword.html')
+        var plantilla = path.join(__dirname, '../../..', 'views/forgotPassword.html')
         var datos = {
             nombre: result.nombre1,
             id: Buffer.from(result._id.toString()).toString('base64'),
@@ -371,7 +364,7 @@ exports.forgotPasswordUser = async (req, res) => {
         }
         await Auth.sendEmailToUser(mailOptions, plantilla, datos);
         return res.status(200).json({
-            code: 300,
+            code: 314,
             msg: "Mensaje enviado exitosamente, verifique su correo para cambiar su contraseña"
         })
     } catch (error) {
@@ -429,7 +422,7 @@ exports.recoveryPasswordUser = async (req, res) => {
     try {
         await Auth.updatePasswordById(req.body)
         return res.status(200).json({
-            code: 310,
+            code: 316,
             msg: "Contraseña reestablecida correctamente"
         })
     } catch (error) {

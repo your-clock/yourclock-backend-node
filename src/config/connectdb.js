@@ -1,4 +1,7 @@
 const mongoose = require('mongoose');
+const debugLib = require('debug');
+
+const logger = debugLib('yck:startDatabase');
 
 module.exports.connect = async () => {
     let uri;
@@ -17,9 +20,9 @@ module.exports.connect = async () => {
 
     await mongoose.connect(uri, mongooseOpts, function (err) {
         if (err) {
-            console.log(`Error connecting to Atlas: ${err}`);
+            logger(`Error connecting to Atlas: ${err}`);
         } else {
-            console.log(`Connected to Atlas in environment: ${process.env.NODE_ENV}`);
+            logger(`Connected to Atlas in environment: ${process.env.NODE_ENV}`);
         }
     });
 }

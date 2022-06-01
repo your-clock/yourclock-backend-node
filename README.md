@@ -37,5 +37,5 @@ Backend del proyecto your-clock basado en Node JS y en la arquitetura MVC (Model
 **Para crear la documentacion de las API's:**
 
 - Instalar la dependencia global con `npm install -g apidoc`, si esta en Linux usar sudo
-- Ejecutar el comando `apidoc -i controller/api -o controller/api/doc`
+- Ejecutar el comando `apidoc -i src/controller/api -o src/controller/api/doc`
 - Se creara una carpeta llamada doc dentro de la carpeta controller/api la cual contendra un index.html con la documentacion

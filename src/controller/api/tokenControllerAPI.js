@@ -1,4 +1,4 @@
-const token = require('../../models/token')
+const token = require('../../services/token')
 
 const error305 = {
 	code: 305,

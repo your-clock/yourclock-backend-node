@@ -1,13 +1,13 @@
-const http = require('./app')
-const sockets = require('./config/socket-config')
-require('./config/redis-config')
+const http = require('./app');
+const sockets = require('./config/socket-config');
+require('./config/redis-config');
 const port = process.env.PORT || 3000;
-const debugLib = require('debug')
+const debugLib = require('debug');
 
 const logger = debugLib('yck:startSever')
 
 sockets.on("connection", socket => {
-	logger(`User ${socket.id} connected by socket`)
+	logger(`User ${socket.id} connected by socket`);
     socket.on("setDevice", deviceId => {
         socket.join(deviceId)
         logger(`User ${socket.id} connected to device ${deviceId}`);

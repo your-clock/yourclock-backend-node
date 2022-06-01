@@ -1,6 +1,6 @@
 {
   "name": "your-clock",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Backend de la pagina de Your-clock hecho en NodeJS",
   "main": "src/server.js",
   "scripts": {

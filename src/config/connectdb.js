@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
-const debugLib = require('debug')
+const debugLib = require('debug');
 
-const logger = debugLib('yck:startDatabase')
+const logger = debugLib('yck:startDatabase');
 
 module.exports.connect = async () => {
     let uri;

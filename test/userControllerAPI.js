@@ -16,10 +16,7 @@ describe('Controlador api de usuarios', () => {
             .send({
                 "mail": testEmail,
                 "pass": "P4sSW0rD*",
-                "name1": "Usuario",
-                "name2": "Prueba",
-                "lastName1": "Tests",
-                "lastName2": "Unitarios",
+                "name": "Usuario prueba test unitarios",
                 "city": "Bogota"
             })
             .end((err, res) => {
@@ -40,10 +37,7 @@ describe('Controlador api de usuarios', () => {
             .send({
                 "mail": testEmail,
                 "pass": "123",
-                "name1": "Usuario",
-                "name2": "Pruebas",
-                "lastName1": "Tests",
-                "lastName2": "Unitarios",
+                "name": "Usuario prueba test unitarios",
                 "city": "Bogota"
             })
             .end((err, res) => {

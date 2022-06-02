@@ -85,3 +85,4 @@ jobs:
           heroku_app_name: ${{ env.app_name }}
           heroku_email: ${{ secrets.HEROKU_USER }}
           branch: "dev"
+          dontuseforce: true

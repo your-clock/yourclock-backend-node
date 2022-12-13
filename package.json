@@ -22,7 +22,7 @@
     "cors": "^2.8.5",
     "crypto-js": "^3.1.9-1",
     "dotenv": "^8.2.0",
-    "express": "^4.17.1",
+    "express": "^4.17.3",
     "express-session": "^1.17.1",
     "googleapis": "^58.0.0",
     "joi": "^17.2.1",

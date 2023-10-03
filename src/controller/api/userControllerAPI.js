@@ -438,7 +438,7 @@ exports.getUrlGoogle = function(req, res) {
 
 exports.callbackGoogle = function(req, res) {
     const correoEncoding = Buffer.from(req.user.correo).toString('base64')
-    const nombreEncoding = Buffer.from(req.user.nombre1).toString('base64')
+    const nombreEncoding = Buffer.from(req.user.nombre).toString('base64')
     const idEncoding = Buffer.from(req.user._id.toString()).toString('base64')
     return res.send(`<script>window.location.href="${process.env.HOST_FRONT}/#/usergoogle/${idEncoding}/${correoEncoding}/${nombreEncoding}";</script>`);
 }

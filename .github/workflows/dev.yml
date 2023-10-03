@@ -1,0 +1,85 @@
+name: building-and-deployment-dev
+
+on:
+  push:
+    branches: [dev, feature/*, fix/*]
+  workflow_dispatch:
+
+env:
+  project_name: "yourclock-backend-node"
+  app_name: "your-clock-dev"
+  language: "javascript" #javascript, java, python
+  branch_default: "dev"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+      GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+      KEY_SHA1: ${{ secrets.KEY_SHA1 }}
+      KEY_TOKEN: ${{ secrets.KEY_TOKEN }}
+      ETHEREAL_HOST: ${{ secrets.ETHEREAL_HOST }}
+      ETHEREAL_PORT: ${{ secrets.ETHEREAL_PORT }}
+      ETHEREAL_PWD: ${{ secrets.ETHEREAL_PWD }}
+      ETHEREAL_USER: ${{ secrets.ETHEREAL_USER }}
+      SECRET_SESSION: ${{ secrets.SECRET_SESSION }}
+      PACKAGE_TOKEN: ${{ secrets.PACKAGE_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Use Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20.x
+      - name: Install and build tests
+        shell: bash
+        run: npm ci && npm run test:coverage
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v3
+        with:
+          name: lcov-report
+          retention-days: 1
+          path: coverage/lcov.info
+
+  sonar:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    - name: Download coverage report
+      uses: actions/download-artifact@v3
+      with:
+        name: lcov-report
+        path: coverage
+    - name: SonarCloud Scan
+      uses: SonarSource/sonarcloud-github-action@master
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      with:
+        args: >
+          -Dsonar.branch.target=${{ env.branch_default }}
+          -Dsonar.branch.name=${{ env.branch_default }}
+    - name: SonarCloud Verify results
+      shell: bash
+      run: |
+        state_sonar=$(curl --location --request GET 'https://sonarcloud.io/api/qualitygates/project_status?projectKey=your-clock_${{ env.project_name }}&branch=${{ env.branch_default }}' | jq '.projectStatus.status')
+        if [ "$state_sonar" != "\"OK\"" ]; then echo "Quality Gate with state: $state_sonar"; exit 1; else echo "Quality Gate OK"; exit 0; fi
+
+  deploy-railway:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/dev'
+    needs: sonar
+    environment: dev
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: bervProject/railway-deploy@main
+        with:
+          railway_token: ${{ secrets.RAILWAY_TOKEN }}
+          service: ${{ env.app_name }}

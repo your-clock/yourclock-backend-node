@@ -1,12 +1,11 @@
-const Auth = require('../../models/users');
+const Auth = require('../../services/users');
 const joi = require('joi')
-const path = require('path')
+const path = require('path');
+const debugLib = require('debug');
+const logger = debugLib('yck:userController');
 
 const schemaLogin = joi.object({
-    name1: joi.string().min(1).required(),
-    name2: joi.string().min(1).allow(""),
-    lastName1: joi.string().min(1).required(),
-    lastName2: joi.string().min(1).allow(""),
+    name: joi.string().min(4).required(),
     mail: joi.string().min(6).required().email(),
     pass: joi.string().min(8).required(),
     city: joi.string().min(1).required(),
@@ -22,6 +21,16 @@ const schemaForgot = joi.object({
     mail: joi.string().min(6).required().email()
 })
 
+const error305 = {
+	code: 305,
+	msg: "faltaron datos"
+}
+
+const error400 = {
+    code: 400,
+    msg: "Ha ocurrido un error en base de datos"
+}
+
 /**
 *@api{post}/login Peticion para registrar un usuario
 *@apiVersion 0.0.0
@@ -30,20 +39,14 @@ const schemaForgot = joi.object({
 *
 *@apiParam{String} mail Correo del usuario a registrar
 *@apiParam{String{min. 8}} pass Contraseña del usuario a registrar
-*@apiParam{String} name1 Primer nombre del usuario a registrar
-*@apiParam{String} [name2] Segundo nombre del usuario a registrar
-*@apiParam{String} lastName1 Primer apellido del usuario a registrar
-*@apiParam{String} [lastName2] Segundo apellido del usuario a registrar
+*@apiParam{String} name Nombre completo del usuario a registrar
 *@apiParam{String} city Ciudad del usuario a registrar
 *
 *@apiParamExample {json} JSON de ejemplo
 * {
 *    "mail": "ejemplo@tudominio.com",
 *    "pass": "H0l4Mund0",
-*    "name1": "Erney",
-*    "name2": "David",
-*    "lastName1": "Garcia",
-*    "lastName2": "Vergara",
+*    "name": "Erney David Garcia Vergara"
 *    "city": "Bogota"
 * }
 *
@@ -77,72 +80,35 @@ const schemaForgot = joi.object({
 *@apiErrorExample {json} JSON de respuesta para error de servidor
 * HTTP/1.1 502 Bad Gateway
 * {
-*    msg: "Error, compruebe su conexion e intentelo de nuevo",
+*    msg: "Ha ocurrido un error en base de datos",
 *    code: 400
 * }
 */
 
-exports.userLogin = (req, res) => {
-
-	let userInfo = req.body
-
-    const {error} = schemaLogin.validate(userInfo);
-    if (error) {
-        return res.status(400).json({
-            errorDetail: error.details[0].message,
-            errorKey: error.details[0].context.key,
-            code: 305,
-            msg: "Por favor revise su "+error.details[0].context.key
-        })
-    }
-
-    Auth.findByEmail(userInfo.mail, function(errorFind, userExist){
-        if(errorFind){
-            return res.status(500).json({
-                code: 400,
-                msg: "Error, compruebe su conexion e intentelo de nuevo",
-                info: errorFind
-            })
-        }else if(userExist){
-            return res.status(200).json({
-                msg: "Usuario ya existente, intentelo de nuevo",
-                code: 304
-            })
-        }
+exports.userLogin = async (req, res) => {
+    try {
+        await Auth.validateBody(req.body, schemaLogin);
+        await Auth.findByEmail(req.body.mail, false);
         var mailOptions = {
             from: 'no-reply@yourclock-app.com',
-            to: userInfo.mail,
+            to: req.body.mail,
             subject: 'Verificacion cuenta en Your Clock'
-        }
-        var plantilla = path.join(__dirname, '../..', 'views/verification.html')
+        };
+        var plantilla = path.join(__dirname, '../../..', 'views/verification.html');
         var datos = {
-            nombre: userInfo.name1,
-            apellido: userInfo.lastName1,
-            email: Buffer.from(userInfo.mail).toString('base64'),
+            nombre: req.body.name,
+            email: Buffer.from(req.body.mail).toString('base64'),
             base_url: process.env.HOST_FRONT
-        }
-        Auth.sendEmailToUser(mailOptions, plantilla, datos, function(errorSend){
-            if(errorSend){
-                return res.status(500).json({
-                    msg: "Error al enviar el correo, verifique su conexion, si el error persiste, intente mas tarde",
-                    code: 402,
-                    info: error
-                })
-            }
-            Auth.createUser(userInfo, function(errorCreate){
-                if(errorCreate){
-                    return res.status(500).json({
-                        msg: "Error, compruebe su conexion e intentelo de nuevo",
-                        code: 400
-                    })
-                }
-                return res.status(201).json({
-                    msg: "Usuario registrado correctamente, verifique su correo para autenticar su cuenta",
-                    code: 300
-                })
-            })
-        })
-    })
+        };
+        await Auth.sendEmailToUser(mailOptions, plantilla, datos);
+        await Auth.createUser(req.body);
+        return res.status(201).json({
+            msg: "Usuario registrado correctamente, verifique su correo para autenticar su cuenta",
+            code: 308
+        });
+    }catch(error){
+        return res.status(error.statusCode || 500).send(error.body || error.toString())
+    }
 }
 
 /**
@@ -199,61 +165,29 @@ exports.userLogin = (req, res) => {
 *@apiErrorExample {json} JSON de respuesta para error de servidor
 * HTTP/1.1 502 Bad Gateway
 * {
-*    msg: "Error, compruebe su conexion e intentelo de nuevo",
+*    msg: "Ha ocurrido un error en base de datos",
 *    code: 400
 * }
 */
 
-exports.authUser = (req, res) => {
-
-	let userInfo = req.body
-
-	const {error} = schemaAuth.validate(userInfo);
-    if (error) {
-        return res.status(400).json({
-            errorDetail: error.details[0].message,
-            errorKey: error.details[0].context.key,
-            code: 305,
-            msg: "Por favor revise su "+error.details[0].context.key
-        })
-    }
-
-    Auth.findByEmail(userInfo.mail, function(err, userExist){
-        if(err){
-            return res.json({
-                msg: "Error, compruebe su conexion e intentelo de nuevo",
-                code: 400
-            })
-        }else if(!userExist){
-            return res.json({
-                msg: "Correo incorrecto, intentelo de nuevo",
-                code: 307
-            })
-        }
-        Auth.authenticateUser(userExist.estado, userExist.password, userInfo.pass, function(verified, authenticated){
-            if(verified && authenticated){
-                res.json({
-                    code: 300,
-                    msg: "Usuario autenticado exitosamente",
-                    infoClient: {
-                        nombre: Buffer.from(userExist.nombre1).toString('base64'),
-                        correo: Buffer.from(userExist.correo).toString('base64'),
-                        id: Buffer.from(userExist._id.toString()).toString('base64')
-                    }
-                })
-            }else if(!verified && authenticated){
-                res.json({
-                    msg: "contraseña incorrecta, intentelo de nuevo",
-                    code: 306
-                })
-            }else if(!verified && !authenticated){
-                res.json({
-                    msg: "Por favor verifique su cuenta para continuar",
-                    code: 308
-                })
+exports.authUser = async (req, res) => {
+    try {
+        await Auth.validateBody(req.body, schemaAuth);
+        const result = await Auth.findByEmail(req.body.mail, true);
+        await Auth.authenticateUser(result.estado, result.password, req.body.pass);
+        return res.status(200).json({
+            code: 300,
+            msg: "Usuario autenticado exitosamente",
+            infoClient: {
+                nombre: Buffer.from(result.nombre).toString('base64'),
+                correo: Buffer.from(result.correo).toString('base64'),
+                id: Buffer.from(result._id.toString()).toString('base64')
             }
         })
-    })
+    } catch (error) {
+        logger(`Error: ${error}`);
+        return res.status(error.statusCode || 500).send(error.body || error.toString())
+    }
 }
 
 /**
@@ -295,37 +229,21 @@ exports.authUser = (req, res) => {
 *@apiErrorExample {json} JSON de respuesta para error de servidor
 * HTTP/1.1 500 Internal Server Error
 * {
-*    msg: "Error, compruebe su conexion e intentelo de nuevo",
+*    msg: "Ha ocurrido un error en base de datos",
 *    code: 400
 * }
 */
 
-exports.deleteUser = (req, res) => {
-
-    let email = req.body.mail
-
-    if(!email){
-    	console.log("faltaron datos");
-    	return res.json({
-    		msg: "Error, faltaron datos",
-    		code: 305
-    	})
-    }
-    email = Buffer.from(email, 'base64').toString('ascii')
-    Auth.deleteUser(email, function(err){
-        if(err){
-            console.log("Error eliminando")
-            return res.json({
-                msg: "Error, compruebe su conexion e intentelo de nuevo",
-                code: 400
-            })
-        }
-        console.log("Cuenta eliminada satisfactoriamente")
-        return res.json({
+exports.deleteUser = async (req, res) => {
+    try {
+        await Auth.deleteUser(req.body.mail)
+        return res.status(200).json({
             msg: "Su cuenta ha sido eliminada correctamente.",
-            code: 311
+            code: 310
         })
-    })
+    } catch (error) {
+        return res.status(error.statusCode || 500).send(error.body || error.toString())
+    }
 }
 
 /**
@@ -367,53 +285,22 @@ exports.deleteUser = (req, res) => {
 *@apiErrorExample {json} JSON de respuesta para error de servidor
 * HTTP/1.1 500 Internal Server Error
 * {
-*    msg: "Error consultando",
+*    msg: "Ha ocurrido un error en base de datos",
 *    code: 400
 * }
 */
 
-exports.verifyUser = (req, res) => {
-
-	  let email = req.body.mail
-
-	  if(!email){
-    		return res.json({
-            code: 305,
-            msg: "Error, faltaron datos"
+exports.verifyUser = async (req, res) => {
+    try {
+        const result = await Auth.findByEmail(Buffer.from(req.body.mail, 'base64').toString('ascii'), true)
+        await Auth.updateStateByEmail(result.correo, result.estado)
+        return res.status(200).json({
+            code: 313,
+            msg: "estado actualizado correctamente"
         })
+    } catch (error) {
+        return res.status(error.statusCode || 500).send(error.body || error.toString())
     }
-    Auth.findByEmail(Buffer.from(email, 'base64').toString('ascii'), function(err, userExist){
-        if(err){
-            return res.send({
-                code: 400,
-                msg: "Error consultando"
-            })
-        }else if(!userExist){
-            return res.send({
-                code: 307,
-                msg: "Correo incorrecto"
-            })
-        }
-        if(userExist.estado == false){
-            Auth.updateStateByEmail(userExist.correo, function(errorUpdate){
-                if(errorUpdate){
-                    return res.send({
-                        code: 400,
-                        msg: "Error consultando"
-                    })
-                }
-                return res.json({
-                    code: 310,
-                    msg: "estado actualizado correctamente"
-                })
-            })
-        }else{
-            return res.json({
-                code: 309,
-                msg: "verificacion ya realizada"
-            })
-        }
-    })
 }
 
 /**
@@ -455,65 +342,34 @@ exports.verifyUser = (req, res) => {
 *@apiErrorExample {json} JSON de respuesta para error de servidor
 * HTTP/1.1 500 Internal Server Error
 * {
-*    msg: "Error consultando, por favor intente de nuevo",
+*    msg: "Ha ocurrido un error en base de datos",
 *    code: 400
 * }
 */
 
-exports.forgotPasswordUser = (req, res) =>{
-    var userInfo = req.body
-  	if(!userInfo.mail){
-        return res.status(400).json({
-            code: 305,
-            msg: "Error, faltaron datos"
-        })
-    }
-    const {error} = schemaForgot.validate(userInfo);
-    if (error) {
-        return res.status(400).json({
-            errorDetail: error.details[0].message,
-            errorKey: error.details[0].context.key,
-            code: 306,
-            msg: "Por favor revise su "+error.details[0].context.key+" y vuelva a intentarlo"
-        })
-    }
-    Auth.findByEmail(userInfo.mail, function(err, userExist){
-        if(err){
-            console.log("Error consultando; "+err)
-            return res.status(500).json({
-                code: 400,
-                msg: "Error consultando, por favor intente de nuevo"
-            })
-        }else if(!userExist){
-            return res.status(400).json({
-                code: 307,
-                msg: "Correo incorrecto o inexistente, compruebe la informacion"
-            })
-        }
-        let mailOptions = {
+exports.forgotPasswordUser = async (req, res) => {
+    try {
+        await Auth.validateBody(req.body, schemaForgot);
+        const result = await Auth.findByEmail(req.body.mail, true);
+        var mailOptions = {
             from: 'yourclocknoreply@gmail.com',
-            to: userInfo.mail,
+            to: req.body.mail,
             subject: 'Cambio de contraseña en Your Clock'
         };
-        var plantilla = path.join(__dirname, '../..', 'views/forgotPassword.html')
+        var plantilla = path.join(__dirname, '../../..', 'views/forgotPassword.html')
         var datos = {
-            nombre: userExist.nombre1,
-            id: Buffer.from(userExist._id.toString()).toString('base64'),
+            nombre: result.nombre1,
+            id: Buffer.from(result._id.toString()).toString('base64'),
             base_url: process.env.HOST_FRONT
         }
-        Auth.sendEmailToUser(mailOptions, plantilla, datos, function(errorSend, info){
-            if(errorSend){
-                return res.status(500).json({
-                    code: 402,
-                    msg: "Error al enviar el correo, intentelo de nuevo"
-                })
-            }
-            return res.status(200).json({
-                code: 300,
-                msg: "Mensaje enviado exitosamente, verifique su correo para cambiar su contraseña"
-            })
+        await Auth.sendEmailToUser(mailOptions, plantilla, datos);
+        return res.status(200).json({
+            code: 314,
+            msg: "Mensaje enviado exitosamente, verifique su correo para cambiar su contraseña"
         })
-    })
+    } catch (error) {
+        return res.status(error.statusCode || 500).send(error.body || error.toString())
+    }
 }
 
 /**
@@ -557,43 +413,32 @@ exports.forgotPasswordUser = (req, res) =>{
 *@apiErrorExample {json} JSON de respuesta para error de servidor
 * HTTP/1.1 500 Internal Server Error
 * {
-*    msg: "Error consultando",
+*    msg: "Ha ocurrido un error en base de datos,
 *    code: 400
 * }
 */
 
-exports.recoveryPasswordUser = (req, res) => {
-  	var credentials = req.body
-  	if(!credentials.id || !credentials.pass){
-        return res.json({
-            code: 305,
-            msg: "Error, faltaron datos"
-        })
-  	}
-    Auth.updatePasswordById(credentials, function(err){
-        if(err){
-            return res.json({
-                code: 400,
-                msg: "Error consultando"
-            })
-        }
-        //console.log(common.getDateTime()+"----------------- CONTRASEÑA ACTUALIZADA -------------------")
-        return res.json({
-            code: 310,
+exports.recoveryPasswordUser = async (req, res) => {
+    try {
+        await Auth.updatePasswordById(req.body)
+        return res.status(200).json({
+            code: 316,
             msg: "Contraseña reestablecida correctamente"
         })
-    })
+    } catch (error) {
+        return res.status(error.statusCode || 500).send(error.body || error.toString())
+    }
 }
 
 //*********************************** AUTENTICACION DE GOOGLE ************************************************
 
-exports.getUrlGoogle = function(req, res){
-	return res.send(Auth.getGoogleUrl());
+exports.getUrlGoogle = function(req, res) {
+	return res.status(200).send(Auth.getGoogleUrl());
 };
 
 exports.callbackGoogle = function(req, res) {
-    let correoEncoding = Buffer.from(req.user.correo).toString('base64')
-    let nombreEncoding = Buffer.from(req.user.nombre1).toString('base64')
-    let idEncoding = Buffer.from(req.user._id.toString()).toString('base64')
-    return res.send('<script>window.location.href="'+process.env.HOST_FRONT+'/#/usergoogle/'+idEncoding+'/'+correoEncoding+'/'+nombreEncoding+'";</script>');
+    const correoEncoding = Buffer.from(req.user.correo).toString('base64')
+    const nombreEncoding = Buffer.from(req.user.nombre).toString('base64')
+    const idEncoding = Buffer.from(req.user._id.toString()).toString('base64')
+    return res.send(`<script>window.location.href="${process.env.HOST_FRONT}/#/usergoogle/${idEncoding}/${correoEncoding}/${nombreEncoding}";</script>`);
 }

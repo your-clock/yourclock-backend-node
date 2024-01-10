@@ -25,10 +25,10 @@ app.use(passport.session());
 app.use(express.urlencoded({ extended: true }))
 app.use(express.static(path.join(__dirname, 'views')));
 app.use('/privacy_policy', function(req, res){
-	res.sendFile('views/privacy_policy.html');
+	res.sendFile(path.resolve('views/privacy_policy.html'));
 });
 app.use('/google030be2b97e367ddd', function(req, res){
-	res.sendFile('views/google030be2b97e367ddd.html');
+	res.sendFile(path.resolve('views/google030be2b97e367ddd.html'));
 });
 
 let store;

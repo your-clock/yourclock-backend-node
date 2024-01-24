@@ -66,7 +66,7 @@ jobs:
         state_sonar=$(curl --location --request GET 'https://sonarcloud.io/api/qualitygates/project_status?projectKey=your-clock_${{ env.project_name }}&branch=${{ env.branch_default }}' | jq '.projectStatus.status')
         if [ "$state_sonar" != "\"OK\"" ]; then echo "Quality Gate with state: $state_sonar"; exit 1; else echo "Quality Gate OK"; exit 0; fi
         
-  deploy-railway:
+  deploy-cloudflare:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/master'
     needs: sonar
@@ -75,7 +75,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: bervProject/railway-deploy@main
+      - name: Deploy
+        uses: cloudflare/wrangler-action@v3
         with:
-          railway_token: ${{ secrets.RAILWAY_TOKEN }}
-          service: ${{ env.app_name }}
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}

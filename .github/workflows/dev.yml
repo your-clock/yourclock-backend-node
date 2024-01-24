@@ -83,7 +83,5 @@ jobs:
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          secrets: |
-            PACKAGE_TOKEN
         env:
           PACKAGE_TOKEN: ${{ secrets.PACKAGE_TOKEN }}
